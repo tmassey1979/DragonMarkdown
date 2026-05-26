@@ -4,6 +4,7 @@
     <Project Path="src/DragonMarkdown.Core/DragonMarkdown.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/DragonMarkdown.App.Tests/DragonMarkdown.App.Tests.csproj" />
     <Project Path="tests/DragonMarkdown.Core.Tests/DragonMarkdown.Core.Tests.csproj" />
   </Folder>
 </Solution>
