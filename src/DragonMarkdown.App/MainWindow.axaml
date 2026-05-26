@@ -1,0 +1,113 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DragonMarkdown.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1440" d:DesignHeight="900"
+        x:Class="DragonMarkdown.App.MainWindow"
+        MinWidth="980"
+        MinHeight="640"
+        Width="1360"
+        Height="820"
+        Title="DragonMarkdown">
+    <Window.DataTemplates>
+        <TreeDataTemplate DataType="{x:Type vm:WorkspaceNodeViewModel}" ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Glyph}" Width="40" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </TreeDataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:OpenDocumentViewModel}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="{Binding DisplayName}" />
+                <TextBlock Text="*" IsVisible="{Binding IsDirty}" Foreground="#B35C00" />
+            </StackPanel>
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <DockPanel Background="#F3F6FA">
+        <Border DockPanel.Dock="Top" Background="#1F2937" Height="48">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,0">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="DragonMarkdown" Foreground="#F9FAFB" FontSize="17" FontWeight="SemiBold" />
+                    <Border Background="#324154" CornerRadius="4" Padding="8,3">
+                        <TextBlock Text="{Binding WorkspaceLabel}" Foreground="#D6DEE9" FontSize="12" />
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Button Classes="toolbar-button" Content="Open Folder" Command="{Binding OpenFolderCommand}" />
+                    <Button Classes="toolbar-button" Content="Open File" Command="{Binding OpenFileCommand}" />
+                    <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveActiveCommand}" />
+                    <Button Classes="toolbar-button" Content="Save All" Command="{Binding SaveAllCommand}" />
+                    <Button Classes="toolbar-button" Content="New File" Command="{Binding CreateFileCommand}" />
+                    <Button Classes="toolbar-button" Content="New Folder" Command="{Binding CreateFolderCommand}" />
+                    <Button Classes="toolbar-button" Content="Delete" Command="{Binding DeleteSelectedCommand}" />
+                    <Button Classes="toolbar-button" Content="Reveal" Command="{Binding RevealSelectedCommand}" />
+                    <Button Classes="toolbar-button" Content="Editor" Command="{Binding ToggleEditorCommand}" />
+                    <Button Classes="toolbar-button" Content="Preview" Command="{Binding TogglePreviewCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" BorderBrush="#D8E0EA" BorderThickness="0,1,0,0" Background="#EAF0F7" Height="34">
+            <Grid ColumnDefinitions="*,Auto" Margin="12,0">
+                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Foreground="#506070" FontSize="12" />
+                <TextBlock Grid.Column="1" Text="Trusted workspace" VerticalAlignment="Center" Foreground="#506070" FontSize="12" />
+            </Grid>
+        </Border>
+
+        <Grid Margin="10" ColumnDefinitions="260,6,*,6,*">
+            <Border Classes="panel" CornerRadius="7,0,0,7">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="panel-title" Text="WORKSPACE" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Padding="5,2" Content="+" Command="{Binding CreateFileCommand}" />
+                        </Grid>
+                    </Border>
+                    <TreeView ItemsSource="{Binding WorkspaceItems}"
+                              SelectedItem="{Binding SelectedWorkspaceItem}"
+                              Margin="6"
+                              Background="Transparent" />
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Background="#D8E0EA" ResizeDirection="Columns" />
+
+            <Border Grid.Column="2" Classes="panel" IsVisible="{Binding IsEditorVisible}">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,0">
+                        <TabControl ItemsSource="{Binding OpenDocuments}"
+                                    SelectedItem="{Binding SelectedDocument}"
+                                    MinHeight="42" />
+                    </Border>
+                    <TextBox Text="{Binding SelectedDocument.Text, Mode=TwoWay}"
+                             AcceptsReturn="True"
+                             TextWrapping="NoWrap"
+                             FontFamily="Consolas, Cascadia Mono, monospace"
+                             FontSize="14"
+                             Background="#FFFFFF"
+                             BorderThickness="0"
+                             Padding="14"
+                             HorizontalContentAlignment="Stretch"
+                             VerticalContentAlignment="Stretch"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="3" Background="#D8E0EA" ResizeDirection="Columns" IsVisible="{Binding IsPreviewVisible}" />
+
+            <Border Grid.Column="4" Classes="panel" CornerRadius="0,7,7,0" IsVisible="{Binding IsPreviewVisible}">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,8">
+                        <TextBlock Classes="panel-title" Text="PREVIEW" />
+                    </Border>
+                    <ContentControl Name="PreviewHost" />
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

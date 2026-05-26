@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DragonMarkdown.App/DragonMarkdown.App.csproj" />
+    <Project Path="src/DragonMarkdown.Core/DragonMarkdown.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DragonMarkdown.Core.Tests/DragonMarkdown.Core.Tests.csproj" />
+  </Folder>
+</Solution>

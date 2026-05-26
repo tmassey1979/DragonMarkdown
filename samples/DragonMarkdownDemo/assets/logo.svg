@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160" viewBox="0 0 320 160">
+  <rect width="320" height="160" rx="12" fill="#1f2937"/>
+  <path d="M70 118 L126 38 L182 118 Z" fill="#67e8f9"/>
+  <path d="M126 38 L250 118 L182 118 Z" fill="#f9a8d4" opacity="0.9"/>
+  <text x="28" y="142" font-family="Segoe UI, Arial, sans-serif" font-size="22" fill="#f9fafb">DragonMarkdown</text>
+</svg>
