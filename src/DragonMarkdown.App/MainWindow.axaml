@@ -81,7 +81,7 @@
                     <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,0">
                         <TabControl ItemsSource="{Binding OpenDocuments}"
                                     SelectedItem="{Binding SelectedDocument}"
-                                    MinHeight="42" />
+                                    MinHeight="28" />
                     </Border>
                     <TextBox Text="{Binding SelectedDocument.Text, Mode=TwoWay}"
                              AcceptsReturn="True"

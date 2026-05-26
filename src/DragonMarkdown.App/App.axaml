@@ -7,9 +7,29 @@
         <FluentTheme />
         <Style Selector="Button.toolbar-button">
             <Setter Property="MinWidth" Value="34" />
-            <Setter Property="Height" Value="34" />
+            <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#324154" />
+            <Setter Property="Foreground" Value="#F9FAFB" />
+            <Setter Property="BorderBrush" Value="#4B5E73" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Button.toolbar-button:pointerover">
+            <Setter Property="Background" Value="#3D4F65" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#6B7C90" />
+        </Style>
+        <Style Selector="Button.toolbar-button:pressed">
+            <Setter Property="Background" Value="#4B5E73" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#7F90A4" />
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="MinHeight" Value="24" />
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Foreground" Value="#253041" />
         </Style>
         <Style Selector="TextBlock.panel-title">
             <Setter Property="FontSize" Value="12" />
