@@ -26,8 +26,8 @@ dotnet test .\DragonMarkdown.slnx --no-build --collect:"XPlat Code Coverage" --s
 
 Coverage expectations:
 
-- App logic should stay above 80 percent line coverage.
-- Core logic should stay above 80 percent line coverage.
+- App logic should stay above 80% package-level line coverage.
+- Core logic should stay above 80% package-level line coverage.
 - Avalonia shell composition and native browser host files are excluded from unit coverage and should be checked with smoke/UI tests.
 
 ## Run Locally

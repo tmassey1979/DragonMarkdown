@@ -55,6 +55,7 @@ The workbench should be composed from focused controls:
 - View-model behavior should be unit-tested in `DragonMarkdown.App.Tests`.
 - Avalonia XAML composition should have smoke tests or screenshot/UI tests when the UI stabilizes.
 - Coverage exclusions should be explicit and narrow.
+- Testable app and core packages should stay at or above 80% package-level line coverage.
 
 ## Refactor Rule
 

@@ -17,6 +17,7 @@ The repository uses GitHub Actions for validation, coverage, and release artifac
 - Builds in Release.
 - Runs the full test suite.
 - Uploads Cobertura coverage XML from the Ubuntu coverage job.
+- Enforces the 80% package-level line coverage gate for testable app and core code.
 
 `.github/workflows/release.yml`
 
@@ -24,6 +25,7 @@ The repository uses GitHub Actions for validation, coverage, and release artifac
 - Builds installer artifacts:
   - Windows MSI
   - Linux DEB and RPM
+  - Linux `linux-arm64` DEB/RPM for Raspberry Pi 64-bit validation
   - macOS DMG for `osx-x64` and `osx-arm64`
 - Generates SHA256 checksums.
 - Creates a GitHub Release automatically for version tags.
@@ -35,7 +37,7 @@ GitHub-hosted runners are enough for the current validation and publish artifact
 | Platform | Runner |
 | --- | --- |
 | Windows | `windows-latest` |
-| Ubuntu / Mint target | `ubuntu-latest` |
+| Ubuntu / Mint / Raspberry Pi 64-bit package target | `ubuntu-latest` |
 | macOS Intel and Apple Silicon target | `macos-latest` |
 
 Professional native installers use additional tooling:
@@ -66,4 +68,10 @@ Before pushing, run:
 dotnet build .\DragonMarkdown.slnx
 dotnet test .\DragonMarkdown.slnx --no-build
 dotnet test .\DragonMarkdown.slnx --no-build --collect:"XPlat Code Coverage" --settings .\coverlet.runsettings --results-directory .\TestResults\Coverage
+```
+
+Before v0.1.0.2 release publication, also validate the final release payload with:
+
+```powershell
+.\build\release\validate-v0.1.0.2-artifacts.ps1 -ArtifactDir .\artifacts\installers
 ```
