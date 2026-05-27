@@ -60,10 +60,17 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
       - name: Install nfpm
         shell: bash
         run: |
-          curl -sSfL https://raw.githubusercontent.com/goreleaser/nfpm/main/www/docs/install.sh | sudo sh -s -- -b /usr/local/bin
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.46.3
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/go/bin:$PATH"
           nfpm --version
 
       - name: Package DEB and RPM
