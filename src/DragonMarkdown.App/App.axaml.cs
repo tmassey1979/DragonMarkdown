@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using DragonMarkdown.App.Services;
 
 namespace DragonMarkdown.App;
 
@@ -15,7 +16,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var viewModel = new ViewModels.MainWindowViewModel();
+            var viewModel = new ViewModels.MainWindowViewModel(
+                exportedDocumentOpener: new ExportedDocumentOpener());
             var startupPath = Program.StartupArgs.FirstOrDefault(argument => !argument.StartsWith("-", StringComparison.Ordinal));
             if (!string.IsNullOrWhiteSpace(startupPath))
             {

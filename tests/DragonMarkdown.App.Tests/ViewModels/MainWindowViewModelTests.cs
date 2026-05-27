@@ -1,4 +1,5 @@
 using DragonMarkdown.App.ViewModels;
+using DragonMarkdown.App.Services;
 
 namespace DragonMarkdown.App.Tests.ViewModels;
 
@@ -197,6 +198,22 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void ExportMethods_OpenGeneratedDocumentWhenOpenerIsConfigured()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "export-open.md");
+        var wordPath = Path.Combine(temporaryDirectory, "export-open.docx");
+        File.WriteAllText(filePath, "# Export And Open");
+        var opener = new RecordingExportedDocumentOpener();
+        var viewModel = new MainWindowViewModel(exportedDocumentOpener: opener);
+        viewModel.OpenFile(filePath);
+
+        viewModel.ExportActiveDocumentToWord(wordPath);
+
+        Assert.Equal(wordPath, opener.OpenedPath);
+        Assert.Equal("Exported Word document export-open.docx and opened it.", viewModel.StatusText);
+    }
+
+    [Fact]
     public void SaveCommands_HandleNoActiveDocumentAndDirtyDocuments()
     {
         var filePath = Path.Combine(temporaryDirectory, "notes.md");
@@ -374,6 +391,17 @@ public sealed class MainWindowViewModelTests : IDisposable
         if (Directory.Exists(temporaryDirectory))
         {
             Directory.Delete(temporaryDirectory, recursive: true);
+        }
+    }
+
+    private sealed class RecordingExportedDocumentOpener : IExportedDocumentOpener
+    {
+        public string? OpenedPath { get; private set; }
+
+        public ExportedDocumentOpenResult Open(string filePath)
+        {
+            OpenedPath = filePath;
+            return new ExportedDocumentOpenResult(true, filePath);
         }
     }
 }

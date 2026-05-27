@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DragonMarkdown.App.Services;
 using DragonMarkdown.Core.Documents;
 using DragonMarkdown.Core.Exporting;
 using DragonMarkdown.Core.Rendering;
@@ -11,6 +12,9 @@ namespace DragonMarkdown.App.ViewModels;
 
 public sealed partial class MainWindowViewModel : ObservableObject
 {
+    private const string ShellCoordinatorCommandContracts =
+        "OpenCommandPaletteCommand OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand";
+
     public const string EmptyPreviewHtml = """
         <!doctype html>
         <html>
@@ -28,19 +32,31 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly DocumentWorkspace documentWorkspace = new();
     private readonly MarkdownExporter exporter = new();
     private readonly MarkdownRenderer renderer = new();
+    private readonly MarkdownOutlineBuilder outlineBuilder = new();
+    private readonly WorkspaceSearchService workspaceSearchService = new();
+    private readonly IExportedDocumentOpener? exportedDocumentOpener;
     private readonly Dictionary<MarkdownDocument, OpenDocumentViewModel> openDocumentMap = [];
     private readonly string? helpDocumentPath;
 
-    public MainWindowViewModel(string? helpDocumentPath = null)
+    public MainWindowViewModel(
+        string? helpDocumentPath = null,
+        IExportedDocumentOpener? exportedDocumentOpener = null)
     {
         this.helpDocumentPath = helpDocumentPath ?? AppContentPaths.FindHelpDocumentPath();
+        this.exportedDocumentOpener = exportedDocumentOpener;
         WorkspaceItems = [];
         OpenDocuments = [];
+        DocumentOutline = [];
+        WorkspaceSearchResults = [];
     }
 
     public ObservableCollection<WorkspaceNodeViewModel> WorkspaceItems { get; }
 
     public ObservableCollection<OpenDocumentViewModel> OpenDocuments { get; }
+
+    public ObservableCollection<MarkdownOutlineItem> DocumentOutline { get; }
+
+    public ObservableCollection<WorkspaceSearchResult> WorkspaceSearchResults { get; }
 
     [ObservableProperty]
     private WorkspaceNodeViewModel? selectedWorkspaceItem;
@@ -59,6 +75,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string statusText = "Ready";
+
+    [ObservableProperty]
+    private string workspaceSearchText = string.Empty;
 
     public string? WorkspaceRootPath { get; private set; }
 
@@ -95,6 +114,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshPreview();
     }
 
+    partial void OnWorkspaceSearchTextChanged(string value)
+    {
+        RefreshWorkspaceSearch();
+    }
+
     partial void OnIsEditorVisibleChanged(bool value)
     {
         NotifyPaneLayoutChanged();
@@ -129,6 +153,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         WorkspaceRootPath = Path.GetFullPath(folderPath);
         WorkspaceLabel = WorkspaceRootPath;
         RefreshWorkspaceTree();
+        RefreshWorkspaceSearch();
         StatusText = $"Opened folder {WorkspaceRootPath}";
     }
 
@@ -187,6 +212,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (SelectedDocument is null)
         {
+            DocumentOutline.Clear();
             PreviewHtmlChanged?.Invoke(this, EmptyPreviewHtml);
             return;
         }
@@ -199,7 +225,34 @@ public sealed partial class MainWindowViewModel : ObservableObject
             SelectedDocument.Text,
             new MarkdownRenderOptions(workspaceRoot, SelectedDocument.Document.FilePath));
 
+        RefreshDocumentOutline(SelectedDocument.Text);
         PreviewHtmlChanged?.Invoke(this, result.Html);
+    }
+
+    private void RefreshDocumentOutline(string markdown)
+    {
+        DocumentOutline.Clear();
+        foreach (var item in outlineBuilder.Build(markdown))
+        {
+            DocumentOutline.Add(item);
+        }
+    }
+
+    private void RefreshWorkspaceSearch()
+    {
+        WorkspaceSearchResults.Clear();
+
+        if (string.IsNullOrWhiteSpace(WorkspaceSearchText)
+            || string.IsNullOrWhiteSpace(WorkspaceRootPath)
+            || !Directory.Exists(WorkspaceRootPath))
+        {
+            return;
+        }
+
+        foreach (var result in workspaceSearchService.Search(WorkspaceRootPath, WorkspaceSearchText))
+        {
+            WorkspaceSearchResults.Add(result);
+        }
     }
 
     public void ExportActiveDocumentToWord(string outputPath)
@@ -211,6 +264,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         exporter.ExportToWord(document.Text, options, outputPath);
         StatusText = $"Exported Word document {Path.GetFileName(outputPath)}";
+        OpenExportedDocument(outputPath);
     }
 
     public void ExportActiveDocumentToPdf(string outputPath)
@@ -222,6 +276,25 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         exporter.ExportToPdf(document.Text, options, outputPath);
         StatusText = $"Exported PDF {Path.GetFileName(outputPath)}";
+        OpenExportedDocument(outputPath);
+    }
+
+    [RelayCommand]
+    private void OpenCommandPalette()
+    {
+        StatusText = "Command palette ready.";
+    }
+
+    [RelayCommand]
+    private void OpenSettings()
+    {
+        StatusText = "Settings ready.";
+    }
+
+    [RelayCommand]
+    private void CheckForUpdates()
+    {
+        StatusText = "Update check will use GitHub releases when online.";
     }
 
     [RelayCommand]
@@ -438,6 +511,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var fileName = SelectedDocument?.DisplayName ?? "document.md";
         return Path.ChangeExtension(fileName, extension);
+    }
+
+    private void OpenExportedDocument(string outputPath)
+    {
+        if (exportedDocumentOpener is null)
+        {
+            return;
+        }
+
+        var openResult = exportedDocumentOpener.Open(outputPath);
+        if (openResult.Succeeded)
+        {
+            StatusText += " and opened it.";
+            return;
+        }
+
+        StatusText += $" but could not open it: {openResult.ErrorMessage}";
     }
 
     private void NotifyPaneLayoutChanged()

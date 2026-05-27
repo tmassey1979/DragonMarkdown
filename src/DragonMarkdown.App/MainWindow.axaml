@@ -48,9 +48,13 @@
             <MenuItem Header="_View">
                 <MenuItem Header="_Editor" Command="{Binding ToggleEditorCommand}" />
                 <MenuItem Header="_Preview" Command="{Binding TogglePreviewCommand}" />
+                <Separator />
+                <MenuItem Header="_Command Palette" Command="{Binding OpenCommandPaletteCommand}" />
+                <MenuItem Header="_Settings" Command="{Binding OpenSettingsCommand}" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="DragonMarkdown _Help" Command="{Binding OpenHelpCommand}" />
+                <MenuItem Header="Check for _Updates" Command="{Binding CheckForUpdatesCommand}" />
                 <Separator />
                 <MenuItem Header="_About DragonMarkdown" Command="{Binding ShowAboutCommand}" />
             </MenuItem>
@@ -67,6 +71,16 @@
             </Grid>
         </Border>
 
+        <Border DockPanel.Dock="Top" Background="#263445" BorderBrush="#1B2430" BorderThickness="0,1,0,0" Padding="10,6">
+            <StackPanel Name="MainToolbar" Orientation="Horizontal" Spacing="8">
+                <Button Classes="toolbar-button" Content="Open" Command="{Binding OpenCommandPaletteCommand}" />
+                <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveActiveCommand}" />
+                <Button Classes="toolbar-button" Content="Word" Command="{Binding ExportWordCommand}" />
+                <Button Classes="toolbar-button" Content="PDF" Command="{Binding ExportPdfCommand}" />
+                <Button Classes="toolbar-button" Content="Settings" Command="{Binding OpenSettingsCommand}" />
+            </StackPanel>
+        </Border>
+
         <Border DockPanel.Dock="Bottom" BorderBrush="#D8E0EA" BorderThickness="0,1,0,0" Background="#EAF0F7" Height="34">
             <Grid ColumnDefinitions="*,Auto" Margin="12,0">
                 <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Foreground="#506070" FontSize="12" />
@@ -78,9 +92,13 @@
             <Border Classes="panel" CornerRadius="7,0,0,7">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,8">
-                        <Grid ColumnDefinitions="*,Auto">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
                             <TextBlock Classes="panel-title" Text="WORKSPACE" VerticalAlignment="Center" />
                             <Button Grid.Column="1" Padding="5,2" Content="+" Command="{Binding CreateFileCommand}" />
+                            <TextBox Grid.Row="1"
+                                     Grid.ColumnSpan="2"
+                                     Watermark="Search files"
+                                     Text="{Binding WorkspaceSearchText, Mode=TwoWay}" />
                         </Grid>
                     </Border>
                     <TreeView ItemsSource="{Binding WorkspaceItems}"
@@ -130,7 +148,16 @@
                     IsVisible="{Binding IsPreviewVisible}">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,8">
-                        <TextBlock Classes="panel-title" Text="PREVIEW" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="panel-title" Text="PREVIEW" />
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding DocumentOutline}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Title}" FontSize="11" Foreground="#506070" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
                     </Border>
                     <ContentControl Name="PreviewHost" />
                 </DockPanel>
