@@ -24,11 +24,7 @@ public sealed class FrontMatterServiceTests
         result.Metadata.Should().Contain(new KeyValuePair<string, string>("title", "Release Notes"));
         result.Metadata.Should().Contain(new KeyValuePair<string, string>("author", "Dragon Team"));
         result.Metadata.Should().Contain(new KeyValuePair<string, string>("draft", "false"));
-        result.Body.Should().Be("""
-            # Release Notes
-
-            Body text.
-            """);
+        result.Body.Should().Be("# Release Notes\n\nBody text.");
     }
 
     [Fact]
