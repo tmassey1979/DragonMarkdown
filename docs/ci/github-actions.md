@@ -26,7 +26,7 @@ The repository uses GitHub Actions for validation, coverage, and release artifac
   - Windows `win-x64` MSI
   - Linux `linux-x64` DEB/RPM
   - Linux `linux-arm64` DEB/RPM for Raspberry Pi 64-bit validation
-  - macOS DMG for `osx-x64` and `osx-arm64`
+  - macOS DMG for `osx-x64`
 - Generates one final `SHA256SUMS.txt` in the publish job after all artifacts are downloaded.
 - Creates a GitHub Release automatically for version tags.
 

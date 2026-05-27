@@ -14,7 +14,7 @@ The planned Windows installer format is MSI.
 
 ## macOS
 
-Download the `DragonMarkdown-osx-x64.tar.gz` or `DragonMarkdown-osx-arm64.tar.gz` artifact from CI based on your Mac architecture.
+Download the `DragonMarkdown-<version>-osx-x64.dmg` release asset.
 
 The planned macOS installer format is a signed and notarized DMG containing a `.app` bundle.
 

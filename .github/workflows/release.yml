@@ -100,7 +100,6 @@ jobs:
       matrix:
         rid:
           - osx-x64
-          - osx-arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -2,7 +2,7 @@ param(
     [string]$Version = "0.1.0.2",
     [ValidateSet("Release", "Debug")]
     [string]$Configuration = "Release",
-    [ValidateSet("win-x64", "linux-x64", "linux-arm64", "osx-x64", "osx-arm64")]
+    [ValidateSet("win-x64", "linux-x64", "linux-arm64", "osx-x64")]
     [string]$Runtime = "win-x64",
     [switch]$SkipInstaller
 )

@@ -7,7 +7,6 @@ $ErrorActionPreference = "Stop"
 $requiredArtifacts = @(
     "DragonMarkdown-0.1.0.2-win-x64.msi",
     "DragonMarkdown-0.1.0.2-osx-x64.dmg",
-    "DragonMarkdown-0.1.0.2-osx-arm64.dmg",
     "dragonmarkdown_0.1.0.2_amd64.deb",
     "dragonmarkdown_0.1.0.2_arm64.deb",
     "dragonmarkdown-0.1.0.2.x86_64.rpm",

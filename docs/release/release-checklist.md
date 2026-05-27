@@ -16,7 +16,7 @@ Use this checklist for every DragonMarkdown release.
 ## Package Build
 
 - Windows MSI created on Windows runner: `DragonMarkdown-0.1.0.2-win-x64.msi`.
-- macOS DMGs created on macOS runner: `DragonMarkdown-0.1.0.2-osx-x64.dmg` and `DragonMarkdown-0.1.0.2-osx-arm64.dmg`.
+- macOS DMG created on macOS runner: `DragonMarkdown-0.1.0.2-osx-x64.dmg`.
 - Linux DEB and RPM created on Linux runner:
   - `dragonmarkdown_0.1.0.2_amd64.deb`
   - `dragonmarkdown_0.1.0.2_arm64.deb`

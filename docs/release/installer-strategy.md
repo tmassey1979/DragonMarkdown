@@ -8,7 +8,6 @@ DragonMarkdown should ship professional native installers from GitHub Actions.
 | --- | --- | --- |
 | Windows x64 | `DragonMarkdown-<version>-win-x64.msi` | `windows-latest` or signed self-hosted Windows runner |
 | macOS x64 | `DragonMarkdown-<version>-osx-x64.dmg` | `macos-latest` or signed self-hosted macOS runner |
-| macOS arm64 | `DragonMarkdown-<version>-osx-arm64.dmg` | `macos-latest` or signed self-hosted macOS runner |
 | Linux x64 DEB | `dragonmarkdown_<version>_amd64.deb` | `ubuntu-latest` |
 | Linux x64 RPM | `dragonmarkdown-<version>.x86_64.rpm` | `ubuntu-latest` |
 | Raspberry Pi / Linux arm64 DEB | `dragonmarkdown_<version>_arm64.deb` | `ubuntu-latest` |
@@ -66,7 +65,7 @@ Installer requirements:
 
 ## Repository Support
 
-- `build/package.ps1` is the cross-platform package entry point for `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
+- `build/package.ps1` is the cross-platform package entry point for `win-x64`, `linux-x64`, `linux-arm64`, and `osx-x64`.
 - `packaging/windows/DragonMarkdown.wxs` defines the MSI.
 - `packaging/macos/Info.plist` defines the `.app` bundle metadata.
 - `packaging/linux/nfpm.yaml` defines DEB/RPM metadata.

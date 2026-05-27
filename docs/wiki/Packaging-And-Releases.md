@@ -25,7 +25,7 @@ Target:
 
 - `.app` bundle
 - DMG installer
-- `osx-x64` and `osx-arm64`
+- `osx-x64`
 - `dragonmarkdown.icns` copied into `Contents/Resources`
 - Developer ID signing
 - Notarization
@@ -69,7 +69,7 @@ Recommended tooling:
 ## Release Flow
 
 1. Tag the release.
-2. Native runners build platform artifacts for `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
+2. Native runners build platform artifacts for `win-x64`, `linux-x64`, `linux-arm64`, and `osx-x64`.
 3. CI uploads installers.
 4. The publish job downloads all artifacts and generates one final `SHA256SUMS.txt`.
 5. Release notes list installer hashes and supported platforms.
