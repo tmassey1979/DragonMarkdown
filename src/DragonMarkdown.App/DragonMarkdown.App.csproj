@@ -5,6 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\packaging\assets\dragonmarkdown.ico</ApplicationIcon>
+    <Version>0.1.0.2</Version>
+    <FileVersion>0.1.0.2</FileVersion>
+    <InformationalVersion>0.1.0.2</InformationalVersion>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 

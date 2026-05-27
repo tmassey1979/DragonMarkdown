@@ -10,6 +10,7 @@ Use this checklist for every DragonMarkdown release.
 - Run coverage with `coverlet.runsettings`.
 - Confirm each test package reports at least 80% package-level line coverage for testable code.
 - Confirm app version in release tag matches the package version.
+- For v0.1.0.2, confirm Windows MSI metadata uses `ProductVersion=0.1.0` while the release tag, app metadata, and installer filenames use `0.1.0.2`.
 - Confirm release notes include user-facing changes and known limitations.
 
 ## Package Build
@@ -21,7 +22,7 @@ Use this checklist for every DragonMarkdown release.
   - `dragonmarkdown_0.1.0.2_arm64.deb`
   - `dragonmarkdown-0.1.0.2.x86_64.rpm`
   - `dragonmarkdown-0.1.0.2.aarch64.rpm`
-- SHA256 checksums generated in `SHA256SUMS.txt`.
+- SHA256 checksums generated once in the publish job after artifact download.
 
 ## Signing
 
@@ -45,5 +46,5 @@ Use this checklist for every DragonMarkdown release.
 
 - Push tag `vX.Y.Z`.
 - Confirm GitHub Actions release workflow succeeds.
-- Confirm GitHub Release contains all installers and `SHA256SUMS.txt`.
+- Confirm GitHub Release contains the Windows MSI, macOS DMGs, Linux x64 DEB/RPM, Linux arm64 DEB/RPM, and `SHA256SUMS.txt`.
 - Update GitHub Pages if marketing copy or download links changed.

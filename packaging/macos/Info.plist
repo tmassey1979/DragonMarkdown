@@ -10,6 +10,8 @@
   <string>DragonMarkdown.App</string>
   <key>CFBundleIdentifier</key>
   <string>com.dragonmarkdown.app</string>
+  <key>CFBundleIconFile</key>
+  <string>dragonmarkdown.icns</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>

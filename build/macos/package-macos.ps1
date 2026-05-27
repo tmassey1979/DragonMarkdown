@@ -28,6 +28,7 @@ New-Item -ItemType Directory -Force -Path $macOsDir, $resourcesDir | Out-Null
 
 Copy-Item (Join-Path $PublishDir "*") $macOsDir -Recurse -Force
 Copy-Item (Join-Path $repoRoot "packaging/assets/dragonmarkdown.svg") (Join-Path $resourcesDir "dragonmarkdown.svg") -Force
+Copy-Item (Join-Path $repoRoot "packaging/assets/dragonmarkdown.icns") (Join-Path $resourcesDir "dragonmarkdown.icns") -Force
 
 $infoPlist = Get-Content (Join-Path $repoRoot "packaging/macos/Info.plist") -Raw
 $infoPlist = $infoPlist.Replace("{{VERSION}}", $Version)

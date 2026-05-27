@@ -1,5 +1,5 @@
 name: dragonmarkdown
-arch: amd64
+arch: ${DRAGONMARKDOWN_ARCH}
 platform: linux
 version: ${DRAGONMARKDOWN_VERSION}
 section: editors

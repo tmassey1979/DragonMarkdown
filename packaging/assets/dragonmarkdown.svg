@@ -1,5 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="DragonMarkdown icon">
-  <rect width="256" height="256" rx="52" fill="#1f2937"/>
-  <path d="M58 62h92c28 0 50 22 50 50v82h-34v-82c0-9-7-16-16-16h-24v98H92V96H58z" fill="#f9fafb"/>
-  <path d="M128 140l28-34h36l-64 80-64-80h36z" fill="#38bdf8"/>
+  <defs>
+    <linearGradient id="plate" x1="32" y1="18" x2="224" y2="238" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#123c69"/>
+      <stop offset="0.52" stop-color="#146c94"/>
+      <stop offset="1" stop-color="#1f8f7a"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="68" y1="52" x2="188" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#06283d" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#plate)"/>
+  <path d="M45 199c26-5 38-22 48-50 8-23 20-42 44-54 23-12 46-10 68 5-19-30-49-47-83-43-43 5-72 37-82 79-5 21-6 43 5 63z" fill="#0b2538" opacity="0.22"/>
+  <g filter="url(#shadow)">
+    <path d="M74 43h78l37 37v111c0 12-9 21-21 21H74c-12 0-21-9-21-21V64c0-12 9-21 21-21z" fill="url(#paper)"/>
+    <path d="M151 44v28c0 7 6 13 13 13h25z" fill="#93c5fd"/>
+    <path d="M82 78h48c34 0 58 23 58 56 0 34-24 57-58 57H82v-29h46c17 0 29-11 29-28 0-16-12-27-29-27h-16v36H82z" fill="#123c69"/>
+    <path d="M127 154l27-33h34l-61 74-61-74h34z" fill="#14b8a6"/>
+  </g>
+  <path d="M61 43c22-17 51-23 80-18 28 5 52 20 68 42-31-14-63-12-91 5-26 15-45 39-57 69-7-36-6-70 0-98z" fill="#f59e0b" opacity="0.95"/>
+  <path d="M91 37c22 7 39 19 51 35-26 5-50 19-71 40 0-28 6-53 20-75z" fill="#fef3c7" opacity="0.78"/>
 </svg>

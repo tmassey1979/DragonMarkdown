@@ -6,11 +6,13 @@ DragonMarkdown should ship professional native installers from GitHub Actions.
 
 | Platform | Artifact | Runner |
 | --- | --- | --- |
-| Windows | MSI | `windows-latest` or signed self-hosted Windows runner |
-| macOS | DMG containing `.app` bundle | `macos-latest` or signed self-hosted macOS runner |
-| Ubuntu | DEB | `ubuntu-latest` |
-| Linux Mint | DEB | `ubuntu-latest` |
-| RedHat family | RPM | `ubuntu-latest` with package tooling or native RedHat runner |
+| Windows x64 | `DragonMarkdown-<version>-win-x64.msi` | `windows-latest` or signed self-hosted Windows runner |
+| macOS x64 | `DragonMarkdown-<version>-osx-x64.dmg` | `macos-latest` or signed self-hosted macOS runner |
+| macOS arm64 | `DragonMarkdown-<version>-osx-arm64.dmg` | `macos-latest` or signed self-hosted macOS runner |
+| Linux x64 DEB | `dragonmarkdown_<version>_amd64.deb` | `ubuntu-latest` |
+| Linux x64 RPM | `dragonmarkdown-<version>.x86_64.rpm` | `ubuntu-latest` |
+| Raspberry Pi / Linux arm64 DEB | `dragonmarkdown_<version>_arm64.deb` | `ubuntu-latest` |
+| Raspberry Pi / Linux arm64 RPM | `dragonmarkdown-<version>.aarch64.rpm` | `ubuntu-latest` |
 
 ## Packaging Principles
 
@@ -19,6 +21,7 @@ DragonMarkdown should ship professional native installers from GitHub Actions.
 - Include app icon, desktop/start menu entry, uninstall support, and version metadata.
 - Keep signing and notarization secrets in GitHub Actions secrets.
 - Generate checksums for every release artifact.
+- Generate release checksums once in the publish job after all installer artifacts are downloaded, so multiple build jobs cannot upload colliding `SHA256SUMS.txt` files.
 
 ## Windows MSI
 
@@ -31,6 +34,7 @@ Installer requirements:
 - Program Files install path.
 - Clean uninstall.
 - Upgrade code for in-place upgrades.
+- MSI `ProductVersion` is derived from the first three parts of the public version. For v0.1.0.2, the MSI product version is `0.1.0`, while filenames, tags, and app metadata remain `0.1.0.2`.
 - Optional `.md`, `.markdown`, and `.mdown` file association.
 - Authenticode signing.
 
@@ -41,7 +45,7 @@ Recommended tools: `codesign`, `notarytool`, `hdiutil`.
 Installer requirements:
 
 - Proper `.app` bundle with `Info.plist`.
-- `.icns` app icon.
+- `dragonmarkdown.icns` app icon copied into `Contents/Resources`.
 - Developer ID signing.
 - Notarization.
 - Stapled ticket.
@@ -62,7 +66,7 @@ Installer requirements:
 
 ## Repository Support
 
-- `build/package.ps1` is the cross-platform package entry point.
+- `build/package.ps1` is the cross-platform package entry point for `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
 - `packaging/windows/DragonMarkdown.wxs` defines the MSI.
 - `packaging/macos/Info.plist` defines the `.app` bundle metadata.
 - `packaging/linux/nfpm.yaml` defines DEB/RPM metadata.
@@ -70,7 +74,6 @@ Installer requirements:
 
 ## Next Implementation Slice
 
-1. Add production app icon conversion to `.ico` and `.icns`.
-2. Add signed installer validation on self-hosted or secret-backed runners.
-3. Add file association tests for installed packages.
-4. Add release smoke tests on clean OS images.
+1. Add signed installer validation on self-hosted or secret-backed runners.
+2. Add file association tests for installed packages.
+3. Add release smoke tests on clean OS images.

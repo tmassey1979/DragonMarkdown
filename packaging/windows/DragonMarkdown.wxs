@@ -8,6 +8,8 @@
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of DragonMarkdown is already installed." />
     <MediaTemplate EmbedCab="yes" />
+    <Icon Id="DragonMarkdownIcon" SourceFile="$(IconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="DragonMarkdownIcon" />
 
     <StandardDirectory Id="ProgramFilesFolder">
       <Directory Id="INSTALLFOLDER" Name="DragonMarkdown" />
@@ -35,6 +37,7 @@
         Id="DragonMarkdownStartMenuShortcut"
         Name="DragonMarkdown"
         Description="Markdown editor and previewer"
+        Icon="DragonMarkdownIcon"
         Target="[INSTALLFOLDER]DragonMarkdown.App.exe"
         WorkingDirectory="INSTALLFOLDER" />
       <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
