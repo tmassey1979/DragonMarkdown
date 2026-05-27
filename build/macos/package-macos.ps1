@@ -39,10 +39,16 @@ chmod +x (Join-Path $macOsDir "DragonMarkdown.App")
 
 if ($env:APPLE_DEVELOPER_ID) {
     codesign --force --deep --options runtime --sign $env:APPLE_DEVELOPER_ID $bundleRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw "macOS code signing failed for $bundleRoot."
+    }
 }
 
 Remove-Item $dmgPath -Force -ErrorAction SilentlyContinue
 hdiutil create -volname "DragonMarkdown" -srcfolder $bundleRoot -ov -format UDZO $dmgPath
+if ($LASTEXITCODE -ne 0) {
+    throw "macOS DMG creation failed for $Runtime."
+}
 
 if ($env:APPLE_DEVELOPER_ID -and $env:APPLE_APP_SPECIFIC_PASSWORD -and $env:APPLE_TEAM_ID) {
     xcrun notarytool submit $dmgPath `
@@ -50,7 +56,14 @@ if ($env:APPLE_DEVELOPER_ID -and $env:APPLE_APP_SPECIFIC_PASSWORD -and $env:APPL
         --password $env:APPLE_APP_SPECIFIC_PASSWORD `
         --team-id $env:APPLE_TEAM_ID `
         --wait
+    if ($LASTEXITCODE -ne 0) {
+        throw "macOS notarization failed for $dmgPath."
+    }
+
     xcrun stapler staple $dmgPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "macOS stapling failed for $dmgPath."
+    }
 }
 
 Write-Host "Created $dmgPath"

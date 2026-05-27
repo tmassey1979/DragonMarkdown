@@ -52,6 +52,13 @@ $config = $config.Replace('${DRAGONMARKDOWN_PUBLISH_DIR}', $publishPath)
 Set-Content -Path $generatedConfig -Value $config -NoNewline
 
 & $nfpm.Source package --config $generatedConfig --packager deb --target (Join-Path $InstallerDir "dragonmarkdown_${Version}_${DebArch}.deb")
+if ($LASTEXITCODE -ne 0) {
+    throw "nFPM DEB packaging failed for $Runtime."
+}
+
 & $nfpm.Source package --config $generatedConfig --packager rpm --target (Join-Path $InstallerDir "dragonmarkdown-$Version.$RpmArch.rpm")
+if ($LASTEXITCODE -ne 0) {
+    throw "nFPM RPM packaging failed for $Runtime."
+}
 
 Write-Host "Created Linux packages in $InstallerDir"

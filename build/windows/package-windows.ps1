@@ -34,12 +34,18 @@ $msiPath = Join-Path $resolvedInstallerDir "DragonMarkdown-$Version-$Runtime.msi
 $productVersion = ConvertTo-MsiProductVersion -Version $Version
 
 dotnet tool restore
+if ($LASTEXITCODE -ne 0) {
+    throw "dotnet tool restore failed."
+}
 
 dotnet tool run wix build $wxsPath `
     -define "PublishDir=$resolvedPublishDir" `
     -define "ProductVersion=$productVersion" `
     -define "IconPath=$iconPath" `
     -out $msiPath
+if ($LASTEXITCODE -ne 0) {
+    throw "WiX MSI packaging failed for $Runtime."
+}
 
 if ($env:WINDOWS_CODESIGN_CERT_BASE64 -and $env:WINDOWS_CODESIGN_CERT_PASSWORD) {
     $certPath = Join-Path $env:RUNNER_TEMP "dragonmarkdown-codesign.pfx"
@@ -53,6 +59,9 @@ if ($env:WINDOWS_CODESIGN_CERT_BASE64 -and $env:WINDOWS_CODESIGN_CERT_PASSWORD) 
         /tr "http://timestamp.digicert.com" `
         /td SHA256 `
         $msiPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Windows signing failed for $msiPath."
+    }
 }
 
 Write-Host "Created $msiPath"

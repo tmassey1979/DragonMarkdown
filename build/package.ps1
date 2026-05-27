@@ -22,6 +22,9 @@ dotnet publish $appProject `
     --self-contained true `
     --output $publishDir `
     -p:Version=$Version
+if ($LASTEXITCODE -ne 0) {
+    throw "dotnet publish failed for $Runtime."
+}
 
 if ($SkipInstaller) {
     Write-Host "Published DragonMarkdown $Version for $Runtime to $publishDir"
