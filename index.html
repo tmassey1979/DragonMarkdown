@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DragonMarkdown is a native desktop markdown editor with a live preview, folder tree, Mermaid diagrams, and Word/PDF exports.">
+  <title>DragonMarkdown | Native Markdown Editor</title>
+  <link rel="icon" href="packaging/assets/dragonmarkdown.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site-header" aria-label="Primary navigation">
+    <a class="brand" href="#top" aria-label="DragonMarkdown home">
+      <img src="packaging/assets/dragonmarkdown.svg" alt="" width="32" height="32">
+      <span>DragonMarkdown</span>
+    </a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#exports">Exports</a>
+      <a href="#releases">Releases</a>
+      <a href="https://github.com/tmassey1979/DragonMarkdown">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="workbench-scene" aria-hidden="true">
+        <div class="app-window">
+          <div class="window-bar">
+            <span></span>
+            <span></span>
+            <span></span>
+            <strong>DragonMarkdown</strong>
+          </div>
+          <div class="app-menu">
+            <span>File</span>
+            <span>Workspace</span>
+            <span>View</span>
+            <span>Help</span>
+          </div>
+          <div class="workspace">
+            <aside class="tree-pane">
+              <b>WORKSPACE</b>
+              <p>README.md</p>
+              <p>docs</p>
+              <p>release-notes.md</p>
+              <p>assets</p>
+            </aside>
+            <section class="editor-pane">
+              <div class="tab-row">
+                <span>README.md</span>
+                <span>release-notes.md</span>
+              </div>
+              <pre><code># DragonMarkdown
+
+```mermaid
+graph TD
+  Draft --> Preview
+  Preview --> Export
+```
+
+- Native desktop shell
+- Folder based workflow
+- Word and PDF export</code></pre>
+            </section>
+            <section class="preview-pane">
+              <b>PREVIEW</b>
+              <h3>DragonMarkdown</h3>
+              <div class="diagram">
+                <span>Draft</span>
+                <i></i>
+                <span>Preview</span>
+                <i></i>
+                <span>Export</span>
+              </div>
+              <ul>
+                <li>Native desktop shell</li>
+                <li>Folder based workflow</li>
+                <li>Word and PDF export</li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </div>
+      <div class="hero-copy">
+        <p class="eyebrow">Native desktop markdown for serious writing projects</p>
+        <h1 id="hero-title">DragonMarkdown</h1>
+        <p class="lede">A clean C# desktop editor with a folder tree, focused source editing, live preview, Mermaid diagrams, and professional export paths for Word and PDF.</p>
+        <div class="hero-actions">
+          <a class="primary-action" href="https://github.com/tmassey1979/DragonMarkdown/releases">Get releases</a>
+          <a class="secondary-action" href="https://github.com/tmassey1979/DragonMarkdown">View source</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Workbench</p>
+        <h2>Built around folders, files, and preview confidence.</h2>
+      </div>
+      <div class="feature-grid">
+        <article>
+          <span class="feature-mark">01</span>
+          <h3>Open a folder or one file</h3>
+          <p>Start with a workspace tree for project writing, or open a single markdown file when the job is smaller.</p>
+        </article>
+        <article>
+          <span class="feature-mark">02</span>
+          <h3>Hide what you do not need</h3>
+          <p>The editor and preview panes can be toggled independently while the file tree remains available.</p>
+        </article>
+        <article>
+          <span class="feature-mark">03</span>
+          <h3>Advanced markdown support</h3>
+          <p>Tables, task lists, front matter, math, syntax highlighting, and Mermaid preview support are part of the workflow.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="exports" class="split-section">
+      <div>
+        <p class="eyebrow">Exports</p>
+        <h2>Documents you can hand off.</h2>
+        <p>DragonMarkdown exports the active document to Word and PDF. Common Mermaid graph and flowchart fences render into diagram output instead of staying as raw code.</p>
+      </div>
+      <div class="export-list">
+        <div>
+          <strong>Word</strong>
+          <span>DOCX export path for team review and document workflows.</span>
+        </div>
+        <div>
+          <strong>PDF</strong>
+          <span>Portable output with rendered markdown structure and diagram support.</span>
+        </div>
+        <div>
+          <strong>Installers</strong>
+          <span>Release automation targets MSI, DMG, DEB, and RPM packages.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="releases" class="section release-band">
+      <div>
+        <p class="eyebrow">Release ready</p>
+        <h2>GitHub Actions builds, tests, coverage, and installers.</h2>
+        <p>The repository is configured for CI, release artifacts, checksums, and a packaging roadmap for signed native installers.</p>
+      </div>
+      <a class="primary-action" href="https://github.com/tmassey1979/DragonMarkdown/actions">Open Actions</a>
+    </section>
+  </main>
+
+  <footer>
+    <span>DragonMarkdown</span>
+    <a href="https://github.com/tmassey1979/DragonMarkdown">github.com/tmassey1979/DragonMarkdown</a>
+  </footer>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>
