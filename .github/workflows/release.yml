@@ -1,0 +1,73 @@
+name: Release Artifacts
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version label, for example v0.1.0"
+        required: true
+        default: "v0.1.0"
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+  DOTNET_VERSION: "10.0.x"
+  APP_PROJECT: src/DragonMarkdown.App/DragonMarkdown.App.csproj
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            archive: zip
+          - os: ubuntu-latest
+            rid: linux-x64
+            archive: tgz
+          - os: macos-latest
+            rid: osx-x64
+            archive: tgz
+          - os: macos-latest
+            rid: osx-arm64
+            archive: tgz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish
+        run: dotnet publish "${{ env.APP_PROJECT }}" --configuration Release --runtime "${{ matrix.rid }}" --self-contained true --output "artifacts/publish/${{ matrix.rid }}"
+
+      - name: Create ZIP artifact
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: Compress-Archive -Path "artifacts/publish/${{ matrix.rid }}/*" -DestinationPath "artifacts/DragonMarkdown-${{ matrix.rid }}.zip" -Force
+
+      - name: Create tar.gz artifact
+        if: matrix.archive == 'tgz'
+        shell: bash
+        run: tar -C "artifacts/publish/${{ matrix.rid }}" -czf "artifacts/DragonMarkdown-${{ matrix.rid }}.tar.gz" .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DragonMarkdown-${{ matrix.rid }}
+          path: |
+            artifacts/DragonMarkdown-${{ matrix.rid }}.zip
+            artifacts/DragonMarkdown-${{ matrix.rid }}.tar.gz
+          if-no-files-found: error
