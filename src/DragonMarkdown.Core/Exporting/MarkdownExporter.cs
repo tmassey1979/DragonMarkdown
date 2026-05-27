@@ -2,6 +2,7 @@ using System.Text;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using DragonMarkdown.Core.FrontMatter;
 using DragonMarkdown.Core.Rendering;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -14,11 +15,54 @@ namespace DragonMarkdown.Core.Exporting;
 public sealed class MarkdownExporter
 {
     private readonly MarkdownRenderer renderer = new();
+    private readonly ExportValidationService validationService = new();
+
+    public ExportResult Export(MarkdownExportRequest request, MarkdownRenderOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(options);
+
+        var validationReport = validationService.Validate(request);
+        if (!validationReport.IsValid)
+        {
+            return ExportResult.Failure(request.OutputPath, validationReport, "Export validation failed.");
+        }
+
+        try
+        {
+            var profile = request.EffectiveProfile;
+            var markdown = profile.StripFrontMatter
+                ? FrontMatterService.Parse(request.Markdown).Body
+                : request.Markdown;
+
+            switch (profile.Format)
+            {
+                case ExportFormat.Word:
+                    ExportToWord(markdown, options, request.OutputPath, profile);
+                    break;
+                case ExportFormat.Pdf:
+                    ExportToPdf(markdown, options, request.OutputPath, profile);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(request), profile.Format, "Unsupported export format.");
+            }
+
+            return ExportResult.Success(request.OutputPath, validationReport);
+        }
+        catch (Exception ex)
+        {
+            return ExportResult.Failure(request.OutputPath, validationReport, ex.Message);
+        }
+    }
 
     public void ExportToWord(string markdown, MarkdownRenderOptions options, string outputPath)
+        => ExportToWord(markdown, options, outputPath, ExportProfile.Word("Word"));
+
+    public void ExportToWord(string markdown, MarkdownRenderOptions options, string outputPath, ExportProfile profile)
     {
         ArgumentNullException.ThrowIfNull(markdown);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(profile);
         EnsureOutputFolderExists(outputPath);
 
         var exportMarkdown = MarkdownExportPreprocessor.ReplaceMermaidFencesWithSvg(markdown);
@@ -41,9 +85,13 @@ public sealed class MarkdownExporter
     }
 
     public void ExportToPdf(string markdown, MarkdownRenderOptions options, string outputPath)
+        => ExportToPdf(markdown, options, outputPath, ExportProfile.Pdf("PDF"));
+
+    public void ExportToPdf(string markdown, MarkdownRenderOptions options, string outputPath, ExportProfile profile)
     {
         ArgumentNullException.ThrowIfNull(markdown);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(profile);
         EnsureOutputFolderExists(outputPath);
 
         QuestPDF.Settings.License = LicenseType.Community;
@@ -54,9 +102,15 @@ public sealed class MarkdownExporter
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.Letter);
-                    page.Margin(42);
+                    page.Size(GetPageSize(profile.PageSetup.PageSize));
+                    page.Margin(profile.PageSetup.MarginPoints);
                     page.DefaultTextStyle(style => style.FontSize(11));
+
+                    if (profile.HeaderFooterOptions.Enabled
+                        && !string.IsNullOrWhiteSpace(profile.HeaderFooterOptions.HeaderText))
+                    {
+                        page.Header().Text(profile.HeaderFooterOptions.HeaderText);
+                    }
 
                     page.Content().Column(column =>
                     {
@@ -67,6 +121,12 @@ public sealed class MarkdownExporter
                             AddBlock(column, block);
                         }
                     });
+
+                    if (profile.HeaderFooterOptions.Enabled
+                        && !string.IsNullOrWhiteSpace(profile.HeaderFooterOptions.FooterText))
+                    {
+                        page.Footer().AlignCenter().Text(profile.HeaderFooterOptions.FooterText);
+                    }
                 });
             })
             .GeneratePdf(outputPath);
@@ -113,6 +173,14 @@ public sealed class MarkdownExporter
                 break;
         }
     }
+
+    private static QuestPDF.Helpers.PageSize GetPageSize(string pageSize) =>
+        pageSize.Trim().ToUpperInvariant() switch
+        {
+            "A4" => PageSizes.A4,
+            "LETTER" => PageSizes.Letter,
+            _ => PageSizes.Letter
+        };
 
     private static void EnsureOutputFolderExists(string outputPath)
     {
