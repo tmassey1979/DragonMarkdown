@@ -39,6 +39,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IUserSettingsService? userSettingsService;
     private readonly IUpdateCheckService? updateCheckService;
     private readonly IPreviewRefreshScheduler previewRefreshScheduler;
+    private readonly IRecentItemsService? recentItemsService;
+    private readonly IAutosaveRecoveryService? autosaveRecoveryService;
     private readonly string currentVersion;
     private readonly Dictionary<MarkdownDocument, OpenDocumentViewModel> openDocumentMap = [];
     private readonly string? helpDocumentPath;
@@ -50,6 +52,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IUserSettingsService? userSettingsService = null,
         IUpdateCheckService? updateCheckService = null,
         IPreviewRefreshScheduler? previewRefreshScheduler = null,
+        IRecentItemsService? recentItemsService = null,
+        IAutosaveRecoveryService? autosaveRecoveryService = null,
         string? currentVersion = null)
     {
         this.helpDocumentPath = helpDocumentPath ?? AppContentPaths.FindHelpDocumentPath();
@@ -57,13 +61,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.userSettingsService = userSettingsService;
         this.updateCheckService = updateCheckService;
         this.previewRefreshScheduler = previewRefreshScheduler ?? new DebouncedPreviewRefreshScheduler();
+        this.recentItemsService = recentItemsService;
+        this.autosaveRecoveryService = autosaveRecoveryService;
         this.currentVersion = currentVersion ?? GetCurrentVersion();
         WorkspaceItems = [];
         OpenDocuments = [];
         DocumentOutline = [];
         WorkspaceSearchResults = [];
+        RecentItems = [];
         CommandPaletteItems = [];
         FilteredCommandPaletteItems = [];
+        RefreshRecentItems();
         RegisterCommandPaletteItems();
         RefreshCommandPaletteItems();
     }
@@ -75,6 +83,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<MarkdownOutlineItem> DocumentOutline { get; }
 
     public ObservableCollection<WorkspaceSearchResult> WorkspaceSearchResults { get; }
+
+    public ObservableCollection<RecentItem> RecentItems { get; }
 
     public ObservableCollection<CommandPaletteItemViewModel> CommandPaletteItems { get; }
 
@@ -232,6 +242,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         WorkspaceLabel = WorkspaceRootPath;
         RefreshWorkspaceTree();
         RefreshWorkspaceSearch();
+        AddRecentItem(WorkspaceRootPath);
         StatusText = $"Opened folder {WorkspaceRootPath}";
     }
 
@@ -246,6 +257,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         OpenDocument(filePath);
+        AddRecentItem(Path.GetFullPath(filePath));
     }
 
     private void OpenDocument(string filePath)
@@ -323,6 +335,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         string workspaceRoot = WorkspaceRootPath
             ?? Path.GetDirectoryName(documentPath)
             ?? Environment.CurrentDirectory;
+        AutosaveDocument(SelectedDocument);
 
         previewRefreshScheduler.Schedule(
             cancellationToken =>
@@ -340,6 +353,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 PreviewHtmlChanged?.Invoke(this, result.Html);
                 return Task.CompletedTask;
             });
+    }
+
+    private void AutosaveDocument(OpenDocumentViewModel document)
+    {
+        autosaveRecoveryService?.WriteSnapshot(document.Document.FilePath, document.Text);
     }
 
     private void RefreshDocumentOutline(string markdown)
@@ -400,6 +418,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshCommandPaletteItems();
         IsCommandPaletteOpen = true;
         StatusText = "Command palette ready.";
+    }
+
+    private void RefreshRecentItems()
+    {
+        RecentItems.Clear();
+        foreach (var item in recentItemsService?.GetRecentItems() ?? [])
+        {
+            RecentItems.Add(item);
+        }
     }
 
     [RelayCommand]
@@ -470,6 +497,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         OpenDocument(result.FullPath);
+    }
+
+    [RelayCommand]
+    private void OpenRecentItem(RecentItem? recentItem)
+    {
+        if (recentItem is null)
+        {
+            return;
+        }
+
+        OpenPath(recentItem.Path);
     }
 
     [RelayCommand]
@@ -562,6 +600,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         SelectedDocument.Save();
+        autosaveRecoveryService?.ClearSnapshots(SelectedDocument.Document.FilePath);
         StatusText = $"Saved {SelectedDocument.DisplayName}";
     }
 
@@ -571,6 +610,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         foreach (var document in OpenDocuments)
         {
             document.Save();
+            autosaveRecoveryService?.ClearSnapshots(document.Document.FilePath);
         }
 
         StatusText = "Saved all open files";
@@ -730,6 +770,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
         CommandPaletteItems.Add(new("Check for Updates", "Help", null, "github release version", CheckForUpdatesCommand));
         CommandPaletteItems.Add(new("Help", "Help", null, "documentation guide", OpenHelpCommand));
         CommandPaletteItems.Add(new("About", "Help", null, "version application", ShowAboutCommand));
+    }
+
+    private void AddRecentItem(string path)
+    {
+        recentItemsService?.AddRecentItem(path);
+        RefreshRecentItems();
     }
 
     private void RefreshCommandPaletteItems()

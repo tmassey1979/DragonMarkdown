@@ -23,7 +23,9 @@ public partial class App : Application
             var viewModel = new ViewModels.MainWindowViewModel(
                 exportedDocumentOpener: new ExportedDocumentOpener(),
                 userSettingsService: new UserSettingsService(AppDataPaths.SettingsPath),
-                updateCheckService: new GitHubUpdateCheckService(httpClient));
+                updateCheckService: new GitHubUpdateCheckService(httpClient),
+                recentItemsService: new RecentItemsService(AppDataPaths.RecentItemsPath),
+                autosaveRecoveryService: new AutosaveRecoveryService(AppDataPaths.AutosaveRecoveryRoot));
             var startupPath = Program.StartupArgs.FirstOrDefault(argument => !argument.StartsWith("-", StringComparison.Ordinal));
             if (!string.IsNullOrWhiteSpace(startupPath))
             {

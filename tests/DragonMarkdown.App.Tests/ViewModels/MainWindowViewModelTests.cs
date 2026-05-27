@@ -19,7 +19,8 @@ public sealed class MainWindowViewModelTests : IDisposable
     {
         Directory.CreateDirectory(Path.Combine(temporaryDirectory, "docs"));
         File.WriteAllText(Path.Combine(temporaryDirectory, "README.md"), "# DragonMarkdown");
-        var viewModel = new MainWindowViewModel();
+        var recentItemsService = new RecordingRecentItemsService();
+        var viewModel = new MainWindowViewModel(recentItemsService: recentItemsService);
 
         viewModel.OpenPath(temporaryDirectory);
 
@@ -27,6 +28,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         Assert.Equal(Path.GetFullPath(temporaryDirectory), viewModel.WorkspaceLabel);
         Assert.NotEmpty(viewModel.WorkspaceItems);
         Assert.Empty(viewModel.OpenDocuments);
+        Assert.Contains(Path.GetFullPath(temporaryDirectory), recentItemsService.Paths);
     }
 
     [Fact]
@@ -34,13 +36,15 @@ public sealed class MainWindowViewModelTests : IDisposable
     {
         var filePath = Path.Combine(temporaryDirectory, "README.md");
         File.WriteAllText(filePath, "# DragonMarkdown");
-        var viewModel = new MainWindowViewModel();
+        var recentItemsService = new RecordingRecentItemsService();
+        var viewModel = new MainWindowViewModel(recentItemsService: recentItemsService);
 
         viewModel.OpenPath(filePath);
 
         Assert.Equal(Path.GetFullPath(temporaryDirectory), viewModel.WorkspaceRootPath);
         Assert.Single(viewModel.OpenDocuments);
         Assert.Equal("README.md", viewModel.SelectedDocument?.DisplayName);
+        Assert.Contains(Path.GetFullPath(filePath), recentItemsService.Paths);
     }
 
     [Fact]
@@ -243,6 +247,19 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpenRecentItemCommand_OpensRecentPath()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "recent.md");
+        File.WriteAllText(filePath, "# Recent");
+        var viewModel = new MainWindowViewModel();
+        var recentItem = new RecentItem(filePath, DateTimeOffset.UtcNow);
+
+        viewModel.OpenRecentItemCommand.Execute(recentItem);
+
+        Assert.Equal("recent.md", viewModel.SelectedDocument?.DisplayName);
+    }
+
+    [Fact]
     public void ExportCommands_RequireActiveDocument()
     {
         var viewModel = new MainWindowViewModel();
@@ -428,6 +445,36 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void EditingSelectedDocument_WritesAutosaveSnapshot()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "autosave.md");
+        File.WriteAllText(filePath, "# Before");
+        var autosaveService = new RecordingAutosaveRecoveryService();
+        var viewModel = new MainWindowViewModel(autosaveRecoveryService: autosaveService);
+        viewModel.OpenFile(filePath);
+
+        viewModel.SelectedDocument!.Text = "# Draft";
+
+        Assert.Equal(Path.GetFullPath(filePath), autosaveService.SnapshotDocumentPath);
+        Assert.Equal("# Draft", autosaveService.SnapshotContent);
+    }
+
+    [Fact]
+    public void SaveActive_ClearsAutosaveSnapshot()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "autosave-save.md");
+        File.WriteAllText(filePath, "# Before");
+        var autosaveService = new RecordingAutosaveRecoveryService();
+        var viewModel = new MainWindowViewModel(autosaveRecoveryService: autosaveService);
+        viewModel.OpenFile(filePath);
+        viewModel.SelectedDocument!.Text = "# Draft";
+
+        viewModel.SaveActiveCommand.Execute(null);
+
+        Assert.Equal(Path.GetFullPath(filePath), autosaveService.ClearedDocumentPath);
+    }
+
+    [Fact]
     public void OpenFile_RefreshesPreviewImmediately()
     {
         var filePath = Path.Combine(temporaryDirectory, "open-preview.md");
@@ -578,6 +625,51 @@ public sealed class MainWindowViewModelTests : IDisposable
         {
             Checked = true;
             return Task.FromResult(result);
+        }
+    }
+
+    private sealed class RecordingRecentItemsService : IRecentItemsService
+    {
+        public List<string> Paths { get; } = [];
+
+        public IReadOnlyList<RecentItem> GetRecentItems()
+        {
+            return Paths.Select(path => new RecentItem(path, DateTimeOffset.UtcNow)).ToArray();
+        }
+
+        public void AddRecentItem(string path)
+        {
+            Paths.Add(Path.GetFullPath(path));
+        }
+
+        public void Clear()
+        {
+            Paths.Clear();
+        }
+    }
+
+    private sealed class RecordingAutosaveRecoveryService : IAutosaveRecoveryService
+    {
+        public string? SnapshotDocumentPath { get; private set; }
+
+        public string? SnapshotContent { get; private set; }
+
+        public string? ClearedDocumentPath { get; private set; }
+
+        public void WriteSnapshot(string documentPath, string content)
+        {
+            SnapshotDocumentPath = Path.GetFullPath(documentPath);
+            SnapshotContent = content;
+        }
+
+        public IReadOnlyList<AutosaveRecoverySnapshot> ListRecoverableSnapshots()
+        {
+            return [];
+        }
+
+        public void ClearSnapshots(string documentPath)
+        {
+            ClearedDocumentPath = Path.GetFullPath(documentPath);
         }
     }
 
