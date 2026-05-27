@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <ExcludeByFile>**/App.axaml,**/App.axaml.cs,**/MainWindow.axaml,**/MainWindow.axaml.cs,**/AboutWindow.axaml,**/AboutWindow.axaml.cs,**/Program.cs,**/Preview/CefPreviewHost.cs</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
