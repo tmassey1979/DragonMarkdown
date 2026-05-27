@@ -29,9 +29,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownExporter exporter = new();
     private readonly MarkdownRenderer renderer = new();
     private readonly Dictionary<MarkdownDocument, OpenDocumentViewModel> openDocumentMap = [];
+    private readonly string? helpDocumentPath;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(string? helpDocumentPath = null)
     {
+        this.helpDocumentPath = helpDocumentPath ?? AppContentPaths.FindHelpDocumentPath();
         WorkspaceItems = [];
         OpenDocuments = [];
     }
@@ -75,6 +77,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public event EventHandler<string>? ExportWordRequested;
 
     public event EventHandler<string>? ExportPdfRequested;
+
+    public event EventHandler? AboutRequested;
 
     public event EventHandler<string>? PreviewHtmlChanged;
 
@@ -280,6 +284,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         ExportPdfRequested?.Invoke(this, GetSuggestedExportFileName(".pdf"));
+    }
+
+    [RelayCommand]
+    private void OpenHelp()
+    {
+        if (string.IsNullOrWhiteSpace(helpDocumentPath) || !File.Exists(helpDocumentPath))
+        {
+            StatusText = "Help document not found.";
+            return;
+        }
+
+        OpenFile(helpDocumentPath);
+    }
+
+    [RelayCommand]
+    private void ShowAbout()
+    {
+        AboutRequested?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]

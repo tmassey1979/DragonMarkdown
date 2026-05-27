@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DragonMarkdown.App.AboutWindow"
+        Width="420"
+        Height="300"
+        CanResize="False"
+        Title="About DragonMarkdown">
+    <Border Background="#F7F9FC" Padding="22">
+        <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
+            <StackPanel>
+                <TextBlock Text="DragonMarkdown"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="#253041" />
+                <TextBlock Text="Cross-platform markdown editor and viewer"
+                           FontSize="13"
+                           Foreground="#506070" />
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    Background="#FFFFFF"
+                    BorderBrush="#D8E0EA"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Version 0.1.0" Foreground="#253041" />
+                    <TextBlock Text="Built with Avalonia and .NET" Foreground="#253041" />
+                    <TextBlock Text="Supports markdown preview, Mermaid diagrams, Word export, and PDF export." TextWrapping="Wrap" Foreground="#253041" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Row="2"
+                       Text="Exports render common Mermaid graph and flowchart fences offline so diagrams can appear in generated documents."
+                       TextWrapping="Wrap"
+                       Foreground="#506070" />
+
+            <Button Grid.Row="3"
+                    Content="Close"
+                    HorizontalAlignment="Right"
+                    MinWidth="86"
+                    Click="CloseClicked" />
+        </Grid>
+    </Border>
+</Window>

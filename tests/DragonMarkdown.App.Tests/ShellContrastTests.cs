@@ -54,6 +54,16 @@ public sealed class ShellContrastTests
     }
 
     [Fact]
+    public void Shell_UsesHelpMenuForHelpAndAbout()
+    {
+        var windowXaml = ReadWorkspaceFile("src", "DragonMarkdown.App", "MainWindow.axaml");
+
+        Assert.Contains("Header=\"_Help\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Command=\"{Binding OpenHelpCommand}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Command=\"{Binding ShowAboutCommand}\"", windowXaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Shell_BindsDocumentPanesToExpansionLayoutProperties()
     {
         var windowXaml = ReadWorkspaceFile("src", "DragonMarkdown.App", "MainWindow.axaml");

@@ -24,4 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="..\DragonMarkdown.Core\DragonMarkdown.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\DragonMarkdownHelp.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

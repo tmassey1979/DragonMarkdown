@@ -49,6 +49,11 @@
                 <MenuItem Header="_Editor" Command="{Binding ToggleEditorCommand}" />
                 <MenuItem Header="_Preview" Command="{Binding TogglePreviewCommand}" />
             </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="DragonMarkdown _Help" Command="{Binding OpenHelpCommand}" />
+                <Separator />
+                <MenuItem Header="_About DragonMarkdown" Command="{Binding ShowAboutCommand}" />
+            </MenuItem>
         </Menu>
 
         <Border DockPanel.Dock="Top" Background="#1F2937" Height="42">

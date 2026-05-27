@@ -21,7 +21,8 @@ public sealed class MarkdownExporter
         ArgumentNullException.ThrowIfNull(options);
         EnsureOutputFolderExists(outputPath);
 
-        var html = renderer.RenderDocument(markdown, options).Html;
+        var exportMarkdown = MarkdownExportPreprocessor.ReplaceMermaidFencesWithSvg(markdown);
+        var html = renderer.RenderDocument(exportMarkdown, options).Html;
 
         using var document = WordprocessingDocument.Create(outputPath, WordprocessingDocumentType.Document);
         var mainPart = document.AddMainDocumentPart();
@@ -98,6 +99,15 @@ public sealed class MarkdownExporter
                     .FontSize(9);
                 break;
 
+            case MarkdownPdfBlockKind.MermaidDiagram:
+                column.Item()
+                    .Border(1)
+                    .BorderColor(Colors.Grey.Lighten2)
+                    .Padding(6)
+                    .Svg(block.Svg!)
+                    .FitWidth();
+                break;
+
             default:
                 column.Item().Text(block.Text);
                 break;
@@ -118,7 +128,7 @@ public sealed class MarkdownExporter
         }
     }
 
-    private sealed record MarkdownPdfBlock(MarkdownPdfBlockKind Kind, string Text, int Level = 0)
+    private sealed record MarkdownPdfBlock(MarkdownPdfBlockKind Kind, string Text, int Level = 0, string? Svg = null)
     {
         public static IReadOnlyList<MarkdownPdfBlock> Parse(string markdown)
         {
@@ -126,23 +136,26 @@ public sealed class MarkdownExporter
             var paragraph = new StringBuilder();
             var code = new StringBuilder();
             var inCodeFence = false;
+            var codeFenceLanguage = string.Empty;
 
             foreach (var rawLine in markdown.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
             {
                 var line = rawLine.TrimEnd();
 
-                if (line.StartsWith("```", StringComparison.Ordinal))
+                if (line.TrimStart().StartsWith("```", StringComparison.Ordinal))
                 {
                     FlushParagraph(blocks, paragraph);
 
                     if (inCodeFence)
                     {
-                        blocks.Add(new MarkdownPdfBlock(MarkdownPdfBlockKind.Code, code.ToString().TrimEnd()));
+                        AddCodeFence(blocks, codeFenceLanguage, code.ToString().TrimEnd());
                         code.Clear();
+                        codeFenceLanguage = string.Empty;
                         inCodeFence = false;
                     }
                     else
                     {
+                        codeFenceLanguage = line.TrimStart()[3..].Trim();
                         inCodeFence = true;
                     }
 
@@ -184,12 +197,24 @@ public sealed class MarkdownExporter
 
             if (inCodeFence && code.Length > 0)
             {
-                blocks.Add(new MarkdownPdfBlock(MarkdownPdfBlockKind.Code, code.ToString().TrimEnd()));
+                AddCodeFence(blocks, codeFenceLanguage, code.ToString().TrimEnd());
             }
 
             return blocks.Count == 0
                 ? [new MarkdownPdfBlock(MarkdownPdfBlockKind.Paragraph, string.Empty)]
                 : blocks;
+        }
+
+        private static void AddCodeFence(ICollection<MarkdownPdfBlock> blocks, string language, string source)
+        {
+            if (string.Equals(language, "mermaid", StringComparison.OrdinalIgnoreCase)
+                && MermaidDiagramRenderer.TryRender(source) is { } diagram)
+            {
+                blocks.Add(new MarkdownPdfBlock(MarkdownPdfBlockKind.MermaidDiagram, string.Empty, Svg: diagram.Svg));
+                return;
+            }
+
+            blocks.Add(new MarkdownPdfBlock(MarkdownPdfBlockKind.Code, source));
         }
 
         private static void FlushParagraph(ICollection<MarkdownPdfBlock> blocks, StringBuilder paragraph)
@@ -227,6 +252,7 @@ public sealed class MarkdownExporter
     {
         Paragraph,
         Heading,
-        Code
+        Code,
+        MermaidDiagram
     }
 }

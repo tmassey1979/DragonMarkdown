@@ -81,6 +81,31 @@ public sealed class MainWindowViewModelTests : IDisposable
         Assert.Equal("Keep either the editor or preview visible.", viewModel.StatusText);
     }
 
+    [Fact]
+    public void OpenHelpCommand_OpensConfiguredHelpDocument()
+    {
+        var helpPath = Path.Combine(temporaryDirectory, "DragonMarkdownHelp.md");
+        File.WriteAllText(helpPath, "# DragonMarkdown Help");
+        var viewModel = new MainWindowViewModel(helpDocumentPath: helpPath);
+
+        viewModel.OpenHelpCommand.Execute(null);
+
+        Assert.Single(viewModel.OpenDocuments);
+        Assert.Equal("DragonMarkdownHelp.md", viewModel.SelectedDocument?.DisplayName);
+    }
+
+    [Fact]
+    public void ShowAboutCommand_RaisesAboutRequest()
+    {
+        var viewModel = new MainWindowViewModel();
+        var requestCount = 0;
+        viewModel.AboutRequested += (_, _) => requestCount++;
+
+        viewModel.ShowAboutCommand.Execute(null);
+
+        Assert.Equal(1, requestCount);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(temporaryDirectory))
