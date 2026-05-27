@@ -1,0 +1,44 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="DragonMarkdown"
+    Manufacturer="DragonMarkdown"
+    Version="$(ProductVersion)"
+    UpgradeCode="{1FCB9F62-789A-4F02-8ACB-4C1A5BB3C277}"
+    Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of DragonMarkdown is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="INSTALLFOLDER" Name="DragonMarkdown" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="DragonMarkdown" />
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="DragonMarkdown" Level="1">
+      <ComponentGroupRef Id="ApplicationFiles" />
+      <ComponentRef Id="ApplicationShortcut" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PublishDir)\**" />
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="{B0A8E16F-A357-4627-A894-49945B59A409}">
+      <Shortcut
+        Id="DragonMarkdownStartMenuShortcut"
+        Name="DragonMarkdown"
+        Description="Markdown editor and previewer"
+        Target="[INSTALLFOLDER]DragonMarkdown.App.exe"
+        WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\DragonMarkdown" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Fragment>
+</Wix>

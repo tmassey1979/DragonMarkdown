@@ -21,12 +21,12 @@ The repository uses GitHub Actions for validation, coverage, and release artifac
 `.github/workflows/release.yml`
 
 - Runs on tags matching `v*` and manual dispatch.
-- Publishes self-contained outputs for:
-  - `win-x64`
-  - `linux-x64`
-  - `osx-x64`
-  - `osx-arm64`
-- Uploads zipped or tarred artifacts.
+- Builds installer artifacts:
+  - Windows MSI
+  - Linux DEB and RPM
+  - macOS DMG for `osx-x64` and `osx-arm64`
+- Generates SHA256 checksums.
+- Creates a GitHub Release automatically for version tags.
 
 ## Runner Strategy
 
@@ -38,7 +38,7 @@ GitHub-hosted runners are enough for the current validation and publish artifact
 | Ubuntu / Mint target | `ubuntu-latest` |
 | macOS Intel and Apple Silicon target | `macos-latest` |
 
-Professional native installers will need additional tooling:
+Professional native installers use additional tooling:
 
 - Windows MSI: WiX Toolset and code-signing certificate access.
 - macOS DMG: Apple Developer ID certificate, notarization credentials, `codesign`, `notarytool`, and `hdiutil`.

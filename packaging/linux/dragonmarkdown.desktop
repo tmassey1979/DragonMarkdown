@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=DragonMarkdown
+Comment=Markdown editor and previewer
+Exec=dragonmarkdown %F
+Icon=dragonmarkdown
+Terminal=false
+Categories=Office;TextEditor;Development;
+MimeType=text/markdown;text/x-markdown;

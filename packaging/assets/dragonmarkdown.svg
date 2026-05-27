@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="DragonMarkdown icon">
+  <rect width="256" height="256" rx="52" fill="#1f2937"/>
+  <path d="M58 62h92c28 0 50 22 50 50v82h-34v-82c0-9-7-16-16-16h-24v98H92V96H58z" fill="#f9fafb"/>
+  <path d="M128 140l28-34h36l-64 80-64-80h36z" fill="#38bdf8"/>
+</svg>

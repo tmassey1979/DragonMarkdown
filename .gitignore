@@ -6,5 +6,6 @@ obj/
 .superpowers/
 .tmp/
 TestResults/
+artifacts/
 *.user
 *.suo

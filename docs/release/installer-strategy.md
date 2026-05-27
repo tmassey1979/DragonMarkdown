@@ -60,10 +60,17 @@ Installer requirements:
 - Register markdown MIME types.
 - Clean uninstall.
 
+## Repository Support
+
+- `build/package.ps1` is the cross-platform package entry point.
+- `packaging/windows/DragonMarkdown.wxs` defines the MSI.
+- `packaging/macos/Info.plist` defines the `.app` bundle metadata.
+- `packaging/linux/nfpm.yaml` defines DEB/RPM metadata.
+- `.github/workflows/release.yml` runs native package jobs and publishes release artifacts.
+
 ## Next Implementation Slice
 
-1. Add app icon assets.
-2. Add version metadata to the app project.
-3. Add `packaging/windows`, `packaging/macos`, and `packaging/linux`.
-4. Add package scripts that can run locally on native hosts.
-5. Extend `.github/workflows/release.yml` to produce MSI, DMG, DEB, and RPM.
+1. Add production app icon conversion to `.ico` and `.icns`.
+2. Add signed installer validation on self-hosted or secret-backed runners.
+3. Add file association tests for installed packages.
+4. Add release smoke tests on clean OS images.

@@ -1,0 +1,47 @@
+name: dragonmarkdown
+arch: amd64
+platform: linux
+version: ${DRAGONMARKDOWN_VERSION}
+section: editors
+priority: optional
+maintainer: DragonMarkdown <releases@dragonmarkdown.local>
+description: Cross-platform markdown editor and viewer built with C# and Avalonia.
+vendor: DragonMarkdown
+homepage: https://github.com/tmassey1979/DragonMarkdown
+license: MIT
+
+contents:
+  - src: ${DRAGONMARKDOWN_PUBLISH_DIR}/
+    dst: /opt/dragonmarkdown
+  - src: packaging/linux/dragonmarkdown
+    dst: /usr/bin/dragonmarkdown
+    file_info:
+      mode: 0755
+  - src: packaging/linux/dragonmarkdown.desktop
+    dst: /usr/share/applications/dragonmarkdown.desktop
+  - src: packaging/assets/dragonmarkdown.svg
+    dst: /usr/share/icons/hicolor/scalable/apps/dragonmarkdown.svg
+  - src: packaging/linux/dragonmarkdown.xml
+    dst: /usr/share/mime/packages/dragonmarkdown.xml
+
+scripts:
+  postinstall: packaging/linux/postinstall.sh
+  postremove: packaging/linux/postremove.sh
+
+overrides:
+  deb:
+    depends:
+      - libx11-6
+      - libxrandr2
+      - libxcursor1
+      - libxinerama1
+      - libxi6
+      - libgtk-3-0
+  rpm:
+    depends:
+      - libX11
+      - libXrandr
+      - libXcursor
+      - libXinerama
+      - libXi
+      - gtk3
