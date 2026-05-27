@@ -1,0 +1,8 @@
+<Project>
+  <Target Name="RemoveMissingCefGlueMacOsCopyItems" BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory;_CopyOutOfDateSourceItemsToOutputDirectoryAlways" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <ItemGroup>
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_SourceItemsToCopyToOutputDirectory)" Condition="'%(_SourceItemsToCopyToOutputDirectory.Filename)%(_SourceItemsToCopyToOutputDirectory.Extension)' == 'libEGL.dylib' Or '%(_SourceItemsToCopyToOutputDirectory.Filename)%(_SourceItemsToCopyToOutputDirectory.Extension)' == 'libGLESv2.dylib' Or '%(_SourceItemsToCopyToOutputDirectory.Filename)%(_SourceItemsToCopyToOutputDirectory.Extension)' == 'libvk_swiftshader.dylib'" />
+      <_SourceItemsToCopyToOutputDirectoryAlways Remove="@(_SourceItemsToCopyToOutputDirectoryAlways)" Condition="'%(_SourceItemsToCopyToOutputDirectoryAlways.Filename)%(_SourceItemsToCopyToOutputDirectoryAlways.Extension)' == 'libEGL.dylib' Or '%(_SourceItemsToCopyToOutputDirectoryAlways.Filename)%(_SourceItemsToCopyToOutputDirectoryAlways.Extension)' == 'libGLESv2.dylib' Or '%(_SourceItemsToCopyToOutputDirectoryAlways.Filename)%(_SourceItemsToCopyToOutputDirectoryAlways.Extension)' == 'libvk_swiftshader.dylib'" />
+    </ItemGroup>
+  </Target>
+</Project>

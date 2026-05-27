@@ -105,7 +105,8 @@ public sealed class WorkspaceTreeBuilderTests : IDisposable
 
     private void WriteFile(string relativePath)
     {
-        string fullPath = Path.Combine(_workspaceRoot, relativePath);
+        string[] pathSegments = relativePath.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+        string fullPath = Path.Combine([_workspaceRoot, .. pathSegments]);
         string? directory = Path.GetDirectoryName(fullPath);
         if (directory is not null)
         {

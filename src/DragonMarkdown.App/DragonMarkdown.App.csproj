@@ -28,4 +28,5 @@
   <ItemGroup>
     <Content Include="Resources\DragonMarkdownHelp.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
 </Project>
