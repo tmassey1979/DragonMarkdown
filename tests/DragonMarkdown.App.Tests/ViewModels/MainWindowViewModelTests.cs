@@ -1,5 +1,6 @@
 using DragonMarkdown.App.ViewModels;
 using DragonMarkdown.App.Services;
+using DragonMarkdown.Core.Workspaces;
 
 namespace DragonMarkdown.App.Tests.ViewModels;
 
@@ -145,6 +146,100 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         Assert.Equal(1, folderRequests);
         Assert.Equal(1, fileRequests);
+    }
+
+    [Fact]
+    public void OpenCommandPaletteCommand_OpensPaletteAndSelectsFirstCommand()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.OpenCommandPaletteCommand.Execute(null);
+
+        Assert.True(viewModel.IsCommandPaletteOpen);
+        Assert.NotEmpty(viewModel.FilteredCommandPaletteItems);
+        Assert.NotNull(viewModel.SelectedCommandPaletteItem);
+    }
+
+    [Fact]
+    public void CommandPaletteSearchText_FiltersCommandsByTitleCategoryAndKeywords()
+    {
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenCommandPaletteCommand.Execute(null);
+
+        viewModel.CommandPaletteSearchText = "pdf";
+
+        Assert.Contains(viewModel.FilteredCommandPaletteItems, item => item.Title == "Export to PDF");
+        Assert.DoesNotContain(viewModel.FilteredCommandPaletteItems, item => item.Title == "Open Folder");
+    }
+
+    [Fact]
+    public void ExecuteSelectedCommandPaletteItemCommand_RunsCommandAndClosesPalette()
+    {
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenCommandPaletteCommand.Execute(null);
+        viewModel.SelectedCommandPaletteItem = viewModel.CommandPaletteItems.Single(item => item.Title == "Toggle Preview");
+
+        viewModel.ExecuteSelectedCommandPaletteItemCommand.Execute(null);
+
+        Assert.False(viewModel.IsPreviewVisible);
+        Assert.False(viewModel.IsCommandPaletteOpen);
+    }
+
+    [Fact]
+    public void CloseCommandPaletteCommand_ClosesPaletteAndClearsSearch()
+    {
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenCommandPaletteCommand.Execute(null);
+        viewModel.CommandPaletteSearchText = "settings";
+
+        viewModel.CloseCommandPaletteCommand.Execute(null);
+
+        Assert.False(viewModel.IsCommandPaletteOpen);
+        Assert.Equal(string.Empty, viewModel.CommandPaletteSearchText);
+    }
+
+    [Fact]
+    public void SettingsCommands_OpenAndPersistSettings()
+    {
+        var settingsService = new RecordingUserSettingsService(new UserSettings(temporaryDirectory, "Dark", false));
+        var viewModel = new MainWindowViewModel(userSettingsService: settingsService);
+
+        viewModel.OpenSettingsCommand.Execute(null);
+        viewModel.SettingsTheme = "Light";
+        viewModel.SettingsWordWrap = true;
+        viewModel.SaveSettingsCommand.Execute(null);
+
+        Assert.False(viewModel.IsSettingsOpen);
+        Assert.Equal(new UserSettings(null, "Light", true), settingsService.SavedSettings);
+        Assert.Equal("Settings saved.", viewModel.StatusText);
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesCommand_ReportsAvailableUpdate()
+    {
+        var updateService = new RecordingUpdateCheckService(
+            new UpdateCheckResult(true, "v9.9.9", new Uri("https://example.test/release"), "v9.9.9 is available."));
+        var viewModel = new MainWindowViewModel(updateCheckService: updateService);
+
+        await viewModel.CheckForUpdatesCommand.ExecuteAsync(null);
+
+        Assert.Equal("v9.9.9 is available.", viewModel.StatusText);
+        Assert.True(updateService.Checked);
+    }
+
+    [Fact]
+    public void OpenWorkspaceSearchResultCommand_OpensMatchingDocument()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "search.md");
+        File.WriteAllText(filePath, "# Search Hit");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFolder(temporaryDirectory);
+        viewModel.WorkspaceSearchText = "Search";
+        var result = Assert.Single(viewModel.WorkspaceSearchResults);
+
+        viewModel.OpenWorkspaceSearchResultCommand.Execute(result);
+
+        Assert.Equal("search.md", viewModel.SelectedDocument?.DisplayName);
     }
 
     [Fact]
@@ -306,19 +401,77 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
-    public void EditingSelectedDocument_TracksDirtyStateAndRefreshesPreview()
+    public async Task EditingSelectedDocument_DebouncesPreviewRefresh()
     {
         var filePath = Path.Combine(temporaryDirectory, "edit.md");
         File.WriteAllText(filePath, "# Before");
-        var viewModel = new MainWindowViewModel();
+        var scheduler = new ManualPreviewRefreshScheduler();
+        var viewModel = new MainWindowViewModel(previewRefreshScheduler: scheduler);
         var previewEvents = new List<string>();
         viewModel.PreviewHtmlChanged += (_, html) => previewEvents.Add(html);
         viewModel.OpenFile(filePath);
+        previewEvents.Clear();
 
         viewModel.SelectedDocument!.Text = "# After";
+        viewModel.SelectedDocument.Text = "# Final";
 
         Assert.True(viewModel.SelectedDocument.IsDirty);
-        Assert.Contains(previewEvents, html => html.Contains("After", StringComparison.Ordinal));
+        Assert.Equal(2, scheduler.ScheduledCount);
+        Assert.Empty(previewEvents);
+
+        await scheduler.RunLatestAsync();
+
+        Assert.True(viewModel.SelectedDocument.IsDirty);
+        Assert.Single(previewEvents);
+        Assert.Contains("Final", previewEvents[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("After", previewEvents[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OpenFile_RefreshesPreviewImmediately()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "open-preview.md");
+        File.WriteAllText(filePath, "# Immediate");
+        var scheduler = new ManualPreviewRefreshScheduler();
+        var viewModel = new MainWindowViewModel(previewRefreshScheduler: scheduler);
+        string? previewHtml = null;
+        viewModel.PreviewHtmlChanged += (_, html) => previewHtml = html;
+
+        viewModel.OpenFile(filePath);
+
+        Assert.Equal(0, scheduler.ScheduledCount);
+        Assert.Contains("Immediate", previewHtml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OpeningDocument_BuildsDocumentOutline()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "outline.md");
+        File.WriteAllText(filePath, "# Heading 1" + Environment.NewLine + "## Heading 2");
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.OpenFile(filePath);
+
+        Assert.Collection(
+            viewModel.DocumentOutline,
+            item => Assert.Equal("Heading 1", item.Title),
+            item => Assert.Equal("Heading 2", item.Title));
+    }
+
+    [Fact]
+    public void SelectingOutlineItem_RaisesPreviewAnchorRequestAndUpdatesStatus()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "outline-anchor.md");
+        File.WriteAllText(filePath, "# Heading 1");
+        var viewModel = new MainWindowViewModel();
+        string? requestedAnchor = null;
+        viewModel.PreviewAnchorRequested += (_, slug) => requestedAnchor = slug;
+        viewModel.OpenFile(filePath);
+
+        viewModel.SelectedOutlineItem = viewModel.DocumentOutline.Single();
+
+        Assert.Equal("heading-1", requestedAnchor);
+        Assert.Equal("Outline: Heading 1", viewModel.StatusText);
     }
 
     [Fact]
@@ -402,6 +555,73 @@ public sealed class MainWindowViewModelTests : IDisposable
         {
             OpenedPath = filePath;
             return new ExportedDocumentOpenResult(true, filePath);
+        }
+    }
+
+    private sealed class RecordingUserSettingsService(UserSettings settings) : IUserSettingsService
+    {
+        public UserSettings? SavedSettings { get; private set; }
+
+        public UserSettings Load() => settings;
+
+        public void Save(UserSettings value)
+        {
+            SavedSettings = value;
+        }
+    }
+
+    private sealed class RecordingUpdateCheckService(UpdateCheckResult result) : IUpdateCheckService
+    {
+        public bool Checked { get; private set; }
+
+        public Task<UpdateCheckResult> CheckForUpdatesAsync(string currentVersion, CancellationToken cancellationToken = default)
+        {
+            Checked = true;
+            return Task.FromResult(result);
+        }
+    }
+
+    private sealed class ManualPreviewRefreshScheduler : IPreviewRefreshScheduler
+    {
+        private Func<CancellationToken, Task>? latestRefresh;
+        private CancellationTokenSource? latestTokenSource;
+
+        public int ScheduledCount { get; private set; }
+
+        public void Schedule(Func<CancellationToken, Task> refreshAsync)
+        {
+            latestTokenSource?.Cancel();
+            latestTokenSource = new CancellationTokenSource();
+            latestRefresh = refreshAsync;
+            ScheduledCount++;
+        }
+
+        public void RunNow(Func<CancellationToken, Task> refreshAsync)
+        {
+            latestTokenSource?.Cancel();
+            latestTokenSource = null;
+            latestRefresh = null;
+            refreshAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        public void CancelPending()
+        {
+            latestTokenSource?.Cancel();
+        }
+
+        public async Task RunLatestAsync()
+        {
+            if (latestRefresh is null || latestTokenSource is null)
+            {
+                return;
+            }
+
+            await latestRefresh(latestTokenSource.Token);
+        }
+
+        public void Dispose()
+        {
+            latestTokenSource?.Dispose();
         }
     }
 }

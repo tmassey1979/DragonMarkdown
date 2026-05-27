@@ -16,8 +16,14 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            var httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(5)
+            };
             var viewModel = new ViewModels.MainWindowViewModel(
-                exportedDocumentOpener: new ExportedDocumentOpener());
+                exportedDocumentOpener: new ExportedDocumentOpener(),
+                userSettingsService: new UserSettingsService(AppDataPaths.SettingsPath),
+                updateCheckService: new GitHubUpdateCheckService(httpClient));
             var startupPath = Program.StartupArgs.FirstOrDefault(argument => !argument.StartsWith("-", StringComparison.Ordinal));
             if (!string.IsNullOrWhiteSpace(startupPath))
             {

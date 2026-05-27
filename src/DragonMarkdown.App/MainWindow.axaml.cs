@@ -25,6 +25,7 @@ public partial class MainWindow : Window
                 viewModel.ExportWordRequested += OnExportWordRequested;
                 viewModel.ExportPdfRequested += OnExportPdfRequested;
                 viewModel.AboutRequested += OnAboutRequested;
+                viewModel.PreviewAnchorRequested += OnPreviewAnchorRequested;
                 previewHost.ShowHtml(MainWindowViewModel.EmptyPreviewHtml);
                 viewModel.PreviewHtmlChanged += (_, html) => previewHost.ShowHtml(html);
             }
@@ -39,6 +40,7 @@ public partial class MainWindow : Window
                 viewModel.ExportWordRequested -= OnExportWordRequested;
                 viewModel.ExportPdfRequested -= OnExportPdfRequested;
                 viewModel.AboutRequested -= OnAboutRequested;
+                viewModel.PreviewAnchorRequested -= OnPreviewAnchorRequested;
             }
 
             previewHost.Dispose();
@@ -148,5 +150,10 @@ public partial class MainWindow : Window
     {
         var aboutWindow = new AboutWindow();
         _ = aboutWindow.ShowDialog(this);
+    }
+
+    private void OnPreviewAnchorRequested(object? sender, string slug)
+    {
+        previewHost.ScrollToAnchor(slug);
     }
 }

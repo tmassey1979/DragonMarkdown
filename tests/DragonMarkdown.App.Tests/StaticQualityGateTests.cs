@@ -8,6 +8,12 @@ public sealed class StaticQualityGateTests
 
     [Theory]
     [InlineData("src/DragonMarkdown.App/ViewModels/OpenDocumentViewModel.cs", "OpenDocumentViewModel")]
+    [InlineData("src/DragonMarkdown.App/ViewModels/CommandPaletteItemViewModel.cs", "CommandPaletteItemViewModel")]
+    [InlineData("src/DragonMarkdown.App/Services/IUserSettingsService.cs", "IUserSettingsService")]
+    [InlineData("src/DragonMarkdown.App/Services/UserSettings.cs", "UserSettings")]
+    [InlineData("src/DragonMarkdown.App/Services/IUpdateCheckService.cs", "IUpdateCheckService")]
+    [InlineData("src/DragonMarkdown.App/Services/UpdateCheckResult.cs", "UpdateCheckResult")]
+    [InlineData("src/DragonMarkdown.App/Services/IPreviewRefreshScheduler.cs", "IPreviewRefreshScheduler")]
     [InlineData("src/DragonMarkdown.App/ViewModels/WorkspaceNodeKind.cs", "WorkspaceNodeKind")]
     [InlineData("src/DragonMarkdown.App/ViewModels/WorkspaceNodeViewModel.cs", "WorkspaceNodeViewModel")]
     [InlineData("src/DragonMarkdown.Core/Rendering/BlockedMarkdownReference.cs", "BlockedMarkdownReference")]
@@ -23,6 +29,8 @@ public sealed class StaticQualityGateTests
 
     [Theory]
     [InlineData("src/DragonMarkdown.App/ViewModels/MainWindowViewModel.cs", "OpenDocumentViewModel")]
+    [InlineData("src/DragonMarkdown.App/Services/UserSettingsService.cs", "IUserSettingsService")]
+    [InlineData("src/DragonMarkdown.App/Services/UserSettingsService.cs", "UserSettings")]
     [InlineData("src/DragonMarkdown.App/ViewModels/MainWindowViewModel.cs", "WorkspaceNodeKind")]
     [InlineData("src/DragonMarkdown.App/ViewModels/MainWindowViewModel.cs", "WorkspaceNodeViewModel")]
     [InlineData("src/DragonMarkdown.Core/Rendering/MarkdownRenderResult.cs", "BlockedMarkdownReference")]
@@ -46,7 +54,16 @@ public sealed class StaticQualityGateTests
         Assert.Contains("Command=\"{Binding OpenSettingsCommand}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Command=\"{Binding CheckForUpdatesCommand}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding WorkspaceSearchText, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("ItemsSource=\"{Binding WorkspaceSearchResults}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("OpenWorkspaceSearchResultCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedOutlineItem, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("ItemsControl Grid.Column=\"1\" ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding IsCommandPaletteOpen}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding CommandPaletteSearchText, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("ItemsSource=\"{Binding FilteredCommandPaletteItems}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Command=\"{Binding ExecuteSelectedCommandPaletteItemCommand}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding IsSettingsOpen}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Command=\"{Binding ExportWordCommand}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Command=\"{Binding ExportPdfCommand}\"", windowXaml, StringComparison.Ordinal);
     }

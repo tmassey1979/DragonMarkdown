@@ -15,6 +15,11 @@ public sealed class CefPreviewHost : IPreviewHost
         browser.Address = $"data:text/html;base64,{encoded}";
     }
 
+    public void ScrollToAnchor(string slug)
+    {
+        _ = slug;
+    }
+
     public void Dispose()
     {
         browser.Dispose();

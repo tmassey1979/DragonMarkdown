@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DragonMarkdown.App.Services;
@@ -35,19 +36,36 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownOutlineBuilder outlineBuilder = new();
     private readonly WorkspaceSearchService workspaceSearchService = new();
     private readonly IExportedDocumentOpener? exportedDocumentOpener;
+    private readonly IUserSettingsService? userSettingsService;
+    private readonly IUpdateCheckService? updateCheckService;
+    private readonly IPreviewRefreshScheduler previewRefreshScheduler;
+    private readonly string currentVersion;
     private readonly Dictionary<MarkdownDocument, OpenDocumentViewModel> openDocumentMap = [];
     private readonly string? helpDocumentPath;
+    private int previewRefreshVersion;
 
     public MainWindowViewModel(
         string? helpDocumentPath = null,
-        IExportedDocumentOpener? exportedDocumentOpener = null)
+        IExportedDocumentOpener? exportedDocumentOpener = null,
+        IUserSettingsService? userSettingsService = null,
+        IUpdateCheckService? updateCheckService = null,
+        IPreviewRefreshScheduler? previewRefreshScheduler = null,
+        string? currentVersion = null)
     {
         this.helpDocumentPath = helpDocumentPath ?? AppContentPaths.FindHelpDocumentPath();
         this.exportedDocumentOpener = exportedDocumentOpener;
+        this.userSettingsService = userSettingsService;
+        this.updateCheckService = updateCheckService;
+        this.previewRefreshScheduler = previewRefreshScheduler ?? new DebouncedPreviewRefreshScheduler();
+        this.currentVersion = currentVersion ?? GetCurrentVersion();
         WorkspaceItems = [];
         OpenDocuments = [];
         DocumentOutline = [];
         WorkspaceSearchResults = [];
+        CommandPaletteItems = [];
+        FilteredCommandPaletteItems = [];
+        RegisterCommandPaletteItems();
+        RefreshCommandPaletteItems();
     }
 
     public ObservableCollection<WorkspaceNodeViewModel> WorkspaceItems { get; }
@@ -57,6 +75,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<MarkdownOutlineItem> DocumentOutline { get; }
 
     public ObservableCollection<WorkspaceSearchResult> WorkspaceSearchResults { get; }
+
+    public ObservableCollection<CommandPaletteItemViewModel> CommandPaletteItems { get; }
+
+    public ObservableCollection<CommandPaletteItemViewModel> FilteredCommandPaletteItems { get; }
 
     [ObservableProperty]
     private WorkspaceNodeViewModel? selectedWorkspaceItem;
@@ -79,6 +101,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string workspaceSearchText = string.Empty;
 
+    [ObservableProperty]
+    private WorkspaceSearchResult? selectedWorkspaceSearchResult;
+
+    [ObservableProperty]
+    private bool isCommandPaletteOpen;
+
+    [ObservableProperty]
+    private string commandPaletteSearchText = string.Empty;
+
+    [ObservableProperty]
+    private CommandPaletteItemViewModel? selectedCommandPaletteItem;
+
+    [ObservableProperty]
+    private MarkdownOutlineItem? selectedOutlineItem;
+
+    [ObservableProperty]
+    private bool isSettingsOpen;
+
+    [ObservableProperty]
+    private string settingsTheme = UserSettings.Default.Theme;
+
+    [ObservableProperty]
+    private bool settingsWordWrap = UserSettings.Default.WordWrap;
+
     public string? WorkspaceRootPath { get; private set; }
 
     public int EditorColumnSpan => IsPreviewVisible ? 1 : 3;
@@ -88,6 +134,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public int PreviewColumnSpan => IsEditorVisible ? 1 : 3;
 
     public bool MiddleSplitterVisible => IsEditorVisible && IsPreviewVisible;
+
+    public bool IsWorkspaceSearchActive => !string.IsNullOrWhiteSpace(WorkspaceSearchText);
 
     public event EventHandler<string>? OpenFolderRequested;
 
@@ -100,6 +148,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public event EventHandler? AboutRequested;
 
     public event EventHandler<string>? PreviewHtmlChanged;
+
+    public event EventHandler<string>? PreviewAnchorRequested;
 
     partial void OnSelectedWorkspaceItemChanged(WorkspaceNodeViewModel? value)
     {
@@ -117,6 +167,34 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnWorkspaceSearchTextChanged(string value)
     {
         RefreshWorkspaceSearch();
+        OnPropertyChanged(nameof(IsWorkspaceSearchActive));
+    }
+
+    partial void OnSelectedWorkspaceSearchResultChanged(WorkspaceSearchResult? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        OpenDocument(value.FullPath);
+        SelectedWorkspaceSearchResult = null;
+    }
+
+    partial void OnCommandPaletteSearchTextChanged(string value)
+    {
+        RefreshCommandPaletteItems();
+    }
+
+    partial void OnSelectedOutlineItemChanged(MarkdownOutlineItem? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        StatusText = $"Outline: {value.Title}";
+        PreviewAnchorRequested?.Invoke(this, value.Slug);
     }
 
     partial void OnIsEditorVisibleChanged(bool value)
@@ -178,7 +256,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             if (!openDocumentMap.TryGetValue(document, out var viewModel))
             {
                 viewModel = new OpenDocumentViewModel(document);
-                viewModel.TextChanged += (_, _) => RefreshPreview();
+                viewModel.TextChanged += (_, _) => QueuePreviewRefresh();
                 openDocumentMap[document] = viewModel;
                 OpenDocuments.Add(viewModel);
             }
@@ -210,6 +288,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void RefreshPreview()
     {
+        Interlocked.Increment(ref previewRefreshVersion);
+
         if (SelectedDocument is null)
         {
             DocumentOutline.Clear();
@@ -229,8 +309,42 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PreviewHtmlChanged?.Invoke(this, result.Html);
     }
 
+    private void QueuePreviewRefresh()
+    {
+        if (SelectedDocument is null)
+        {
+            RefreshPreview();
+            return;
+        }
+
+        int version = Interlocked.Increment(ref previewRefreshVersion);
+        string markdown = SelectedDocument.Text;
+        string documentPath = SelectedDocument.Document.FilePath;
+        string workspaceRoot = WorkspaceRootPath
+            ?? Path.GetDirectoryName(documentPath)
+            ?? Environment.CurrentDirectory;
+
+        previewRefreshScheduler.Schedule(
+            cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var result = renderer.RenderDocument(markdown, new MarkdownRenderOptions(workspaceRoot, documentPath));
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (version != Volatile.Read(ref previewRefreshVersion))
+                {
+                    return Task.CompletedTask;
+                }
+
+                RefreshDocumentOutline(markdown);
+                PreviewHtmlChanged?.Invoke(this, result.Html);
+                return Task.CompletedTask;
+            });
+    }
+
     private void RefreshDocumentOutline(string markdown)
     {
+        SelectedOutlineItem = null;
         DocumentOutline.Clear();
         foreach (var item in outlineBuilder.Build(markdown))
         {
@@ -282,19 +396,80 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void OpenCommandPalette()
     {
+        CommandPaletteSearchText = string.Empty;
+        RefreshCommandPaletteItems();
+        IsCommandPaletteOpen = true;
         StatusText = "Command palette ready.";
     }
 
     [RelayCommand]
     private void OpenSettings()
     {
+        var settings = userSettingsService?.Load() ?? UserSettings.Default;
+        SettingsTheme = settings.Theme;
+        SettingsWordWrap = settings.WordWrap;
+        IsSettingsOpen = true;
         StatusText = "Settings ready.";
     }
 
     [RelayCommand]
-    private void CheckForUpdates()
+    private void CloseSettings()
     {
-        StatusText = "Update check will use GitHub releases when online.";
+        IsSettingsOpen = false;
+    }
+
+    [RelayCommand]
+    private void SaveSettings()
+    {
+        userSettingsService?.Save(new UserSettings(WorkspaceRootPath, SettingsTheme, SettingsWordWrap));
+        IsSettingsOpen = false;
+        StatusText = "Settings saved.";
+    }
+
+    [RelayCommand]
+    private async Task CheckForUpdates()
+    {
+        if (updateCheckService is null)
+        {
+            StatusText = "Update check is not configured.";
+            return;
+        }
+
+        StatusText = "Checking for updates...";
+        var result = await updateCheckService.CheckForUpdatesAsync(currentVersion);
+        StatusText = result.Message;
+    }
+
+    [RelayCommand]
+    private void CloseCommandPalette()
+    {
+        IsCommandPaletteOpen = false;
+        CommandPaletteSearchText = string.Empty;
+    }
+
+    [RelayCommand]
+    private void ExecuteSelectedCommandPaletteItem()
+    {
+        if (SelectedCommandPaletteItem is null)
+        {
+            StatusText = "Select a command to run.";
+            return;
+        }
+
+        var selectedCommand = SelectedCommandPaletteItem;
+        IsCommandPaletteOpen = false;
+        selectedCommand.Execute();
+    }
+
+    [RelayCommand]
+    private void OpenWorkspaceSearchResult(WorkspaceSearchResult? result)
+    {
+        if (result is null)
+        {
+            return;
+        }
+
+        OpenDocument(result.FullPath);
     }
 
     [RelayCommand]
@@ -536,6 +711,44 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(PreviewGridColumn));
         OnPropertyChanged(nameof(PreviewColumnSpan));
         OnPropertyChanged(nameof(MiddleSplitterVisible));
+    }
+
+    private void RegisterCommandPaletteItems()
+    {
+        CommandPaletteItems.Clear();
+        CommandPaletteItems.Add(new("Open Folder", "File", "Ctrl+O", "workspace directory project", OpenFolderCommand));
+        CommandPaletteItems.Add(new("Open File", "File", "Ctrl+Shift+O", "markdown document", OpenFileCommand));
+        CommandPaletteItems.Add(new("Save", "File", "Ctrl+S", "write document", SaveActiveCommand));
+        CommandPaletteItems.Add(new("Save All", "File", null, "write all documents", SaveAllCommand));
+        CommandPaletteItems.Add(new("Export to Word", "Export", null, "docx office", ExportWordCommand));
+        CommandPaletteItems.Add(new("Export to PDF", "Export", null, "print pdf", ExportPdfCommand));
+        CommandPaletteItems.Add(new("Toggle Editor", "View", null, "hide show editor pane", ToggleEditorCommand));
+        CommandPaletteItems.Add(new("Toggle Preview", "View", null, "hide show preview pane", TogglePreviewCommand));
+        CommandPaletteItems.Add(new("New File", "Workspace", null, "create markdown", CreateFileCommand));
+        CommandPaletteItems.Add(new("New Folder", "Workspace", null, "create directory", CreateFolderCommand));
+        CommandPaletteItems.Add(new("Settings", "View", null, "preferences options", OpenSettingsCommand));
+        CommandPaletteItems.Add(new("Check for Updates", "Help", null, "github release version", CheckForUpdatesCommand));
+        CommandPaletteItems.Add(new("Help", "Help", null, "documentation guide", OpenHelpCommand));
+        CommandPaletteItems.Add(new("About", "Help", null, "version application", ShowAboutCommand));
+    }
+
+    private void RefreshCommandPaletteItems()
+    {
+        FilteredCommandPaletteItems.Clear();
+        foreach (var item in CommandPaletteItems.Where(item => item.Matches(CommandPaletteSearchText)))
+        {
+            FilteredCommandPaletteItems.Add(item);
+        }
+
+        SelectedCommandPaletteItem = FilteredCommandPaletteItems.FirstOrDefault();
+    }
+
+    private static string GetCurrentVersion()
+    {
+        return Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion
+            ?? "0.1.0.2";
     }
 
     private static string GetUniquePath(string folderPath, string baseName, string extension)
