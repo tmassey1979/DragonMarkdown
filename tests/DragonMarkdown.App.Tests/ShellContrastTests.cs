@@ -41,6 +41,29 @@ public sealed class ShellContrastTests
         Assert.Contains("MinHeight=\"28\"", windowXaml, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Shell_UsesRegularMenuBarForPrimaryCommands()
+    {
+        var windowXaml = ReadWorkspaceFile("src", "DragonMarkdown.App", "MainWindow.axaml");
+
+        Assert.Contains("<Menu DockPanel.Dock=\"Top\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"_File\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Command=\"{Binding ExportWordCommand}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Command=\"{Binding ExportPdfCommand}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"_View\"", windowXaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Shell_BindsDocumentPanesToExpansionLayoutProperties()
+    {
+        var windowXaml = ReadWorkspaceFile("src", "DragonMarkdown.App", "MainWindow.axaml");
+
+        Assert.Contains("Grid.ColumnSpan=\"{Binding EditorColumnSpan}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Grid.Column=\"{Binding PreviewGridColumn}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Grid.ColumnSpan=\"{Binding PreviewColumnSpan}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding MiddleSplitterVisible}\"", windowXaml, StringComparison.Ordinal);
+    }
+
     private static string ReadWorkspaceFile(params string[] segments)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

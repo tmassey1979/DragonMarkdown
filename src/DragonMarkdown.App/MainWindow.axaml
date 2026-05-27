@@ -27,26 +27,37 @@
     </Window.DataTemplates>
 
     <DockPanel Background="#F3F6FA">
-        <Border DockPanel.Dock="Top" Background="#1F2937" Height="48">
-            <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,0">
+        <Menu DockPanel.Dock="Top" Background="#F7F9FC" Foreground="#253041">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open Folder..." Command="{Binding OpenFolderCommand}" />
+                <MenuItem Header="Open _File..." Command="{Binding OpenFileCommand}" />
+                <Separator />
+                <MenuItem Header="_Save" Command="{Binding SaveActiveCommand}" />
+                <MenuItem Header="Save _All" Command="{Binding SaveAllCommand}" />
+                <Separator />
+                <MenuItem Header="Export to _Word..." Command="{Binding ExportWordCommand}" />
+                <MenuItem Header="Export to _PDF..." Command="{Binding ExportPdfCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Workspace">
+                <MenuItem Header="New _File" Command="{Binding CreateFileCommand}" />
+                <MenuItem Header="New F_older" Command="{Binding CreateFolderCommand}" />
+                <Separator />
+                <MenuItem Header="_Delete Selected" Command="{Binding DeleteSelectedCommand}" />
+                <MenuItem Header="_Reveal Selected" Command="{Binding RevealSelectedCommand}" />
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Editor" Command="{Binding ToggleEditorCommand}" />
+                <MenuItem Header="_Preview" Command="{Binding TogglePreviewCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <Border DockPanel.Dock="Top" Background="#1F2937" Height="42">
+            <Grid ColumnDefinitions="Auto,*" Margin="12,0">
                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <TextBlock Text="DragonMarkdown" Foreground="#F9FAFB" FontSize="17" FontWeight="SemiBold" />
                     <Border Background="#324154" CornerRadius="4" Padding="8,3">
                         <TextBlock Text="{Binding WorkspaceLabel}" Foreground="#D6DEE9" FontSize="12" />
                     </Border>
-                </StackPanel>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <Button Classes="toolbar-button" Content="Open Folder" Command="{Binding OpenFolderCommand}" />
-                    <Button Classes="toolbar-button" Content="Open File" Command="{Binding OpenFileCommand}" />
-                    <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveActiveCommand}" />
-                    <Button Classes="toolbar-button" Content="Save All" Command="{Binding SaveAllCommand}" />
-                    <Button Classes="toolbar-button" Content="New File" Command="{Binding CreateFileCommand}" />
-                    <Button Classes="toolbar-button" Content="New Folder" Command="{Binding CreateFolderCommand}" />
-                    <Button Classes="toolbar-button" Content="Delete" Command="{Binding DeleteSelectedCommand}" />
-                    <Button Classes="toolbar-button" Content="Reveal" Command="{Binding RevealSelectedCommand}" />
-                    <Button Classes="toolbar-button" Content="Editor" Command="{Binding ToggleEditorCommand}" />
-                    <Button Classes="toolbar-button" Content="Preview" Command="{Binding TogglePreviewCommand}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -76,7 +87,10 @@
 
             <GridSplitter Grid.Column="1" Background="#D8E0EA" ResizeDirection="Columns" />
 
-            <Border Grid.Column="2" Classes="panel" IsVisible="{Binding IsEditorVisible}">
+            <Border Grid.Column="2"
+                    Grid.ColumnSpan="{Binding EditorColumnSpan}"
+                    Classes="panel"
+                    IsVisible="{Binding IsEditorVisible}">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,0">
                         <TabControl ItemsSource="{Binding OpenDocuments}"
@@ -99,9 +113,16 @@
                 </DockPanel>
             </Border>
 
-            <GridSplitter Grid.Column="3" Background="#D8E0EA" ResizeDirection="Columns" IsVisible="{Binding IsPreviewVisible}" />
+            <GridSplitter Grid.Column="3"
+                          Background="#D8E0EA"
+                          ResizeDirection="Columns"
+                          IsVisible="{Binding MiddleSplitterVisible}" />
 
-            <Border Grid.Column="4" Classes="panel" CornerRadius="0,7,7,0" IsVisible="{Binding IsPreviewVisible}">
+            <Border Grid.Column="{Binding PreviewGridColumn}"
+                    Grid.ColumnSpan="{Binding PreviewColumnSpan}"
+                    Classes="panel"
+                    CornerRadius="0,7,7,0"
+                    IsVisible="{Binding IsPreviewVisible}">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,8">
                         <TextBlock Classes="panel-title" Text="PREVIEW" />

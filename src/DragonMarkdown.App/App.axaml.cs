@@ -15,9 +15,16 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            var viewModel = new ViewModels.MainWindowViewModel();
+            var startupPath = Program.StartupArgs.FirstOrDefault(argument => !argument.StartsWith("-", StringComparison.Ordinal));
+            if (!string.IsNullOrWhiteSpace(startupPath))
+            {
+                viewModel.OpenPath(startupPath);
+            }
+
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new ViewModels.MainWindowViewModel()
+                DataContext = viewModel
             };
         }
 

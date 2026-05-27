@@ -22,6 +22,8 @@ public partial class MainWindow : Window
             {
                 viewModel.OpenFolderRequested += OnOpenFolderRequested;
                 viewModel.OpenFileRequested += OnOpenFileRequested;
+                viewModel.ExportWordRequested += OnExportWordRequested;
+                viewModel.ExportPdfRequested += OnExportPdfRequested;
                 previewHost.ShowHtml(MainWindowViewModel.EmptyPreviewHtml);
                 viewModel.PreviewHtmlChanged += (_, html) => previewHost.ShowHtml(html);
             }
@@ -33,6 +35,8 @@ public partial class MainWindow : Window
             {
                 viewModel.OpenFolderRequested -= OnOpenFolderRequested;
                 viewModel.OpenFileRequested -= OnOpenFileRequested;
+                viewModel.ExportWordRequested -= OnExportWordRequested;
+                viewModel.ExportPdfRequested -= OnExportPdfRequested;
             }
 
             previewHost.Dispose();
@@ -81,6 +85,60 @@ public partial class MainWindow : Window
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } filePath)
         {
             viewModel.OpenFile(filePath);
+        }
+    }
+
+    private async void OnExportWordRequested(object? sender, string suggestedFileName)
+    {
+        if (sender is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        var file = await StorageProvider.SaveFilePickerAsync(new()
+        {
+            Title = "Export Word document",
+            SuggestedFileName = suggestedFileName,
+            DefaultExtension = "docx",
+            FileTypeChoices =
+            [
+                new("Word document")
+                {
+                    Patterns = ["*.docx"]
+                }
+            ]
+        });
+
+        if (file?.TryGetLocalPath() is { } outputPath)
+        {
+            viewModel.ExportActiveDocumentToWord(outputPath);
+        }
+    }
+
+    private async void OnExportPdfRequested(object? sender, string suggestedFileName)
+    {
+        if (sender is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        var file = await StorageProvider.SaveFilePickerAsync(new()
+        {
+            Title = "Export PDF",
+            SuggestedFileName = suggestedFileName,
+            DefaultExtension = "pdf",
+            FileTypeChoices =
+            [
+                new("PDF")
+                {
+                    Patterns = ["*.pdf"]
+                }
+            ]
+        });
+
+        if (file?.TryGetLocalPath() is { } outputPath)
+        {
+            viewModel.ExportActiveDocumentToPdf(outputPath);
         }
     }
 }

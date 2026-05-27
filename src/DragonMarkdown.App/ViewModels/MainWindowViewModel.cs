@@ -3,6 +3,7 @@ using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DragonMarkdown.Core.Documents;
+using DragonMarkdown.Core.Exporting;
 using DragonMarkdown.Core.Rendering;
 using DragonMarkdown.Core.Workspaces;
 
@@ -25,6 +26,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         """;
 
     private readonly DocumentWorkspace documentWorkspace = new();
+    private readonly MarkdownExporter exporter = new();
     private readonly MarkdownRenderer renderer = new();
     private readonly Dictionary<MarkdownDocument, OpenDocumentViewModel> openDocumentMap = [];
 
@@ -58,9 +60,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string? WorkspaceRootPath { get; private set; }
 
+    public int EditorColumnSpan => IsPreviewVisible ? 1 : 3;
+
+    public int PreviewGridColumn => IsEditorVisible ? 4 : 2;
+
+    public int PreviewColumnSpan => IsEditorVisible ? 1 : 3;
+
+    public bool MiddleSplitterVisible => IsEditorVisible && IsPreviewVisible;
+
     public event EventHandler<string>? OpenFolderRequested;
 
     public event EventHandler<string>? OpenFileRequested;
+
+    public event EventHandler<string>? ExportWordRequested;
+
+    public event EventHandler<string>? ExportPdfRequested;
 
     public event EventHandler<string>? PreviewHtmlChanged;
 
@@ -75,6 +89,35 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnSelectedDocumentChanged(OpenDocumentViewModel? value)
     {
         RefreshPreview();
+    }
+
+    partial void OnIsEditorVisibleChanged(bool value)
+    {
+        NotifyPaneLayoutChanged();
+    }
+
+    partial void OnIsPreviewVisibleChanged(bool value)
+    {
+        NotifyPaneLayoutChanged();
+    }
+
+    public void OpenPath(string path)
+    {
+        var fullPath = Path.GetFullPath(path);
+
+        if (Directory.Exists(fullPath))
+        {
+            OpenFolder(fullPath);
+            return;
+        }
+
+        if (File.Exists(fullPath))
+        {
+            OpenFile(fullPath);
+            return;
+        }
+
+        StatusText = $"Path not found: {fullPath}";
     }
 
     public void OpenFolder(string folderPath)
@@ -155,9 +198,37 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PreviewHtmlChanged?.Invoke(this, result.Html);
     }
 
+    public void ExportActiveDocumentToWord(string outputPath)
+    {
+        if (!TryGetActiveExport(out var document, out var options))
+        {
+            return;
+        }
+
+        exporter.ExportToWord(document.Text, options, outputPath);
+        StatusText = $"Exported Word document {Path.GetFileName(outputPath)}";
+    }
+
+    public void ExportActiveDocumentToPdf(string outputPath)
+    {
+        if (!TryGetActiveExport(out var document, out var options))
+        {
+            return;
+        }
+
+        exporter.ExportToPdf(document.Text, options, outputPath);
+        StatusText = $"Exported PDF {Path.GetFileName(outputPath)}";
+    }
+
     [RelayCommand]
     private void ToggleEditor()
     {
+        if (IsEditorVisible && !IsPreviewVisible)
+        {
+            StatusText = "Keep either the editor or preview visible.";
+            return;
+        }
+
         IsEditorVisible = !IsEditorVisible;
         StatusText = IsEditorVisible ? "Editor visible" : "Editor hidden";
     }
@@ -165,6 +236,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void TogglePreview()
     {
+        if (IsPreviewVisible && !IsEditorVisible)
+        {
+            StatusText = "Keep either the editor or preview visible.";
+            return;
+        }
+
         IsPreviewVisible = !IsPreviewVisible;
         StatusText = IsPreviewVisible ? "Preview visible" : "Preview hidden";
     }
@@ -179,6 +256,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void OpenFile()
     {
         OpenFileRequested?.Invoke(this, "Open file");
+    }
+
+    [RelayCommand]
+    private void ExportWord()
+    {
+        if (SelectedDocument is null)
+        {
+            StatusText = "No active document to export.";
+            return;
+        }
+
+        ExportWordRequested?.Invoke(this, GetSuggestedExportFileName(".docx"));
+    }
+
+    [RelayCommand]
+    private void ExportPdf()
+    {
+        if (SelectedDocument is null)
+        {
+            StatusText = "No active document to export.";
+            return;
+        }
+
+        ExportPdfRequested?.Invoke(this, GetSuggestedExportFileName(".pdf"));
     }
 
     [RelayCommand]
@@ -283,6 +384,46 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : Path.GetDirectoryName(SelectedWorkspaceItem?.FullPath ?? string.Empty) ?? WorkspaceRootPath ?? string.Empty;
 
         return !string.IsNullOrWhiteSpace(folderPath) && Directory.Exists(folderPath);
+    }
+
+    private bool TryGetActiveExport(
+        out OpenDocumentViewModel document,
+        out MarkdownRenderOptions options)
+    {
+        if (SelectedDocument is null)
+        {
+            document = null!;
+            options = null!;
+            StatusText = "No active document to export.";
+            return false;
+        }
+
+        document = SelectedDocument;
+        options = CreateRenderOptions(document);
+        return true;
+    }
+
+    private MarkdownRenderOptions CreateRenderOptions(OpenDocumentViewModel document)
+    {
+        var workspaceRoot = WorkspaceRootPath
+            ?? Path.GetDirectoryName(document.Document.FilePath)
+            ?? Environment.CurrentDirectory;
+
+        return new MarkdownRenderOptions(workspaceRoot, document.Document.FilePath);
+    }
+
+    private string GetSuggestedExportFileName(string extension)
+    {
+        var fileName = SelectedDocument?.DisplayName ?? "document.md";
+        return Path.ChangeExtension(fileName, extension);
+    }
+
+    private void NotifyPaneLayoutChanged()
+    {
+        OnPropertyChanged(nameof(EditorColumnSpan));
+        OnPropertyChanged(nameof(PreviewGridColumn));
+        OnPropertyChanged(nameof(PreviewColumnSpan));
+        OnPropertyChanged(nameof(MiddleSplitterVisible));
     }
 
     private static string GetUniquePath(string folderPath, string baseName, string extension)
