@@ -27,7 +27,7 @@ $config = $config.Replace('${DRAGONMARKDOWN_RUNTIME}', $Runtime)
 $config = $config.Replace('${DRAGONMARKDOWN_PUBLISH_DIR}', $publishPath)
 Set-Content -Path $generatedConfig -Value $config -NoNewline
 
-& $nfpm.Source package --config $generatedConfig --packager deb --target (Join-Path $InstallerDir "dragonmarkdown_$Version_amd64.deb")
+& $nfpm.Source package --config $generatedConfig --packager deb --target (Join-Path $InstallerDir "dragonmarkdown_${Version}_amd64.deb")
 & $nfpm.Source package --config $generatedConfig --packager rpm --target (Join-Path $InstallerDir "dragonmarkdown-$Version.x86_64.rpm")
 
 Write-Host "Created Linux packages in $InstallerDir"
