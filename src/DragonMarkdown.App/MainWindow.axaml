@@ -50,7 +50,6 @@
                 <MenuItem Header="_Editor" Command="{Binding ToggleEditorCommand}" />
                 <MenuItem Header="_Preview" Command="{Binding TogglePreviewCommand}" />
                 <Separator />
-                <MenuItem Header="_Command Palette" Command="{Binding OpenCommandPaletteCommand}" />
                 <MenuItem Header="_Settings" Command="{Binding OpenSettingsCommand}" />
             </MenuItem>
             <MenuItem Header="_Help">
@@ -74,7 +73,7 @@
 
         <Border DockPanel.Dock="Top" Background="#263445" BorderBrush="#1B2430" BorderThickness="0,1,0,0" Padding="10,6">
             <StackPanel Name="MainToolbar" Orientation="Horizontal" Spacing="8">
-                <Button Classes="toolbar-button" Content="Open" Command="{Binding OpenCommandPaletteCommand}" />
+                <Button Classes="toolbar-button" Content="Open Folder" Command="{Binding OpenFolderCommand}" />
                 <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveActiveCommand}" />
                 <Button Classes="toolbar-button" Content="Word" Command="{Binding ExportWordCommand}" />
                 <Button Classes="toolbar-button" Content="PDF" Command="{Binding ExportPdfCommand}" />
@@ -146,7 +145,8 @@
                                     SelectedItem="{Binding SelectedDocument}"
                                     MinHeight="28" />
                     </Border>
-                    <TextBox Text="{Binding SelectedDocument.Text, Mode=TwoWay}"
+                    <TextBox Name="EditorTextBox"
+                             Text="{Binding SelectedDocument.Text, Mode=TwoWay}"
                              AcceptsReturn="True"
                              TextWrapping="NoWrap"
                              FontFamily="Consolas, Cascadia Mono, monospace"
@@ -203,56 +203,6 @@
             </Border>
         </Grid>
     </DockPanel>
-    <Border IsVisible="{Binding IsCommandPaletteOpen}"
-            Background="#990F172A"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch">
-        <Border Width="620"
-                MaxWidth="620"
-                VerticalAlignment="Top"
-                HorizontalAlignment="Center"
-                Margin="0,88,0,0"
-                Background="#F7F9FC"
-                BorderBrush="#B7C4D3"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="12">
-            <DockPanel>
-                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-                    <TextBlock Text="Command Palette" FontSize="16" FontWeight="SemiBold" Foreground="#253041" />
-                    <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommandPaletteCommand}" />
-                </Grid>
-                <TextBox DockPanel.Dock="Top"
-                         Watermark="Search commands"
-                         Text="{Binding CommandPaletteSearchText, Mode=TwoWay}"
-                         Margin="0,0,0,10" />
-                <ListBox ItemsSource="{Binding FilteredCommandPaletteItems}"
-                         SelectedItem="{Binding SelectedCommandPaletteItem, Mode=TwoWay}"
-                         MinHeight="220"
-                         MaxHeight="320"
-                         Background="#FFFFFF"
-                         BorderBrush="#D8E0EA"
-                         BorderThickness="1">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid ColumnDefinitions="*,Auto" Margin="8,6">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#253041" />
-                                    <TextBlock Text="{Binding Category}" FontSize="11" Foreground="#506070" />
-                                </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding ShortcutText}" Foreground="#617184" FontSize="11" VerticalAlignment="Center" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,10,0,0">
-                    <Button Content="Run" Command="{Binding ExecuteSelectedCommandPaletteItemCommand}" />
-                    <Button Content="Cancel" Command="{Binding CloseCommandPaletteCommand}" />
-                </StackPanel>
-            </DockPanel>
-        </Border>
-    </Border>
-
     <Border IsVisible="{Binding IsSettingsOpen}"
             Background="#990F172A"
             HorizontalAlignment="Stretch"

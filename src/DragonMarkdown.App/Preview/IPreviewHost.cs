@@ -9,4 +9,8 @@ public interface IPreviewHost : IDisposable
     void ShowHtml(string html);
 
     void ScrollToAnchor(string slug);
+
+    void ScrollToRatio(double ratio);
+
+    Task<double?> GetScrollRatioAsync();
 }

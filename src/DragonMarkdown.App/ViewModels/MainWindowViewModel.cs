@@ -14,7 +14,7 @@ namespace DragonMarkdown.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private const string ShellCoordinatorCommandContracts =
-        "OpenCommandPaletteCommand OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand";
+        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand";
 
     public const string EmptyPreviewHtml = """
         <!doctype html>
@@ -69,11 +69,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DocumentOutline = [];
         WorkspaceSearchResults = [];
         RecentItems = [];
-        CommandPaletteItems = [];
-        FilteredCommandPaletteItems = [];
         RefreshRecentItems();
-        RegisterCommandPaletteItems();
-        RefreshCommandPaletteItems();
     }
 
     public ObservableCollection<WorkspaceNodeViewModel> WorkspaceItems { get; }
@@ -85,10 +81,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<WorkspaceSearchResult> WorkspaceSearchResults { get; }
 
     public ObservableCollection<RecentItem> RecentItems { get; }
-
-    public ObservableCollection<CommandPaletteItemViewModel> CommandPaletteItems { get; }
-
-    public ObservableCollection<CommandPaletteItemViewModel> FilteredCommandPaletteItems { get; }
 
     [ObservableProperty]
     private WorkspaceNodeViewModel? selectedWorkspaceItem;
@@ -113,15 +105,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private WorkspaceSearchResult? selectedWorkspaceSearchResult;
-
-    [ObservableProperty]
-    private bool isCommandPaletteOpen;
-
-    [ObservableProperty]
-    private string commandPaletteSearchText = string.Empty;
-
-    [ObservableProperty]
-    private CommandPaletteItemViewModel? selectedCommandPaletteItem;
 
     [ObservableProperty]
     private MarkdownOutlineItem? selectedOutlineItem;
@@ -189,11 +172,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         OpenDocument(value.FullPath);
         SelectedWorkspaceSearchResult = null;
-    }
-
-    partial void OnCommandPaletteSearchTextChanged(string value)
-    {
-        RefreshCommandPaletteItems();
     }
 
     partial void OnSelectedOutlineItemChanged(MarkdownOutlineItem? value)
@@ -411,15 +389,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OpenExportedDocument(outputPath);
     }
 
-    [RelayCommand]
-    private void OpenCommandPalette()
-    {
-        CommandPaletteSearchText = string.Empty;
-        RefreshCommandPaletteItems();
-        IsCommandPaletteOpen = true;
-        StatusText = "Command palette ready.";
-    }
-
     private void RefreshRecentItems()
     {
         RecentItems.Clear();
@@ -465,27 +434,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         StatusText = "Checking for updates...";
         var result = await updateCheckService.CheckForUpdatesAsync(currentVersion);
         StatusText = result.Message;
-    }
-
-    [RelayCommand]
-    private void CloseCommandPalette()
-    {
-        IsCommandPaletteOpen = false;
-        CommandPaletteSearchText = string.Empty;
-    }
-
-    [RelayCommand]
-    private void ExecuteSelectedCommandPaletteItem()
-    {
-        if (SelectedCommandPaletteItem is null)
-        {
-            StatusText = "Select a command to run.";
-            return;
-        }
-
-        var selectedCommand = SelectedCommandPaletteItem;
-        IsCommandPaletteOpen = false;
-        selectedCommand.Execute();
     }
 
     [RelayCommand]
@@ -753,40 +701,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(MiddleSplitterVisible));
     }
 
-    private void RegisterCommandPaletteItems()
-    {
-        CommandPaletteItems.Clear();
-        CommandPaletteItems.Add(new("Open Folder", "File", "Ctrl+O", "workspace directory project", OpenFolderCommand));
-        CommandPaletteItems.Add(new("Open File", "File", "Ctrl+Shift+O", "markdown document", OpenFileCommand));
-        CommandPaletteItems.Add(new("Save", "File", "Ctrl+S", "write document", SaveActiveCommand));
-        CommandPaletteItems.Add(new("Save All", "File", null, "write all documents", SaveAllCommand));
-        CommandPaletteItems.Add(new("Export to Word", "Export", null, "docx office", ExportWordCommand));
-        CommandPaletteItems.Add(new("Export to PDF", "Export", null, "print pdf", ExportPdfCommand));
-        CommandPaletteItems.Add(new("Toggle Editor", "View", null, "hide show editor pane", ToggleEditorCommand));
-        CommandPaletteItems.Add(new("Toggle Preview", "View", null, "hide show preview pane", TogglePreviewCommand));
-        CommandPaletteItems.Add(new("New File", "Workspace", null, "create markdown", CreateFileCommand));
-        CommandPaletteItems.Add(new("New Folder", "Workspace", null, "create directory", CreateFolderCommand));
-        CommandPaletteItems.Add(new("Settings", "View", null, "preferences options", OpenSettingsCommand));
-        CommandPaletteItems.Add(new("Check for Updates", "Help", null, "github release version", CheckForUpdatesCommand));
-        CommandPaletteItems.Add(new("Help", "Help", null, "documentation guide", OpenHelpCommand));
-        CommandPaletteItems.Add(new("About", "Help", null, "version application", ShowAboutCommand));
-    }
-
     private void AddRecentItem(string path)
     {
         recentItemsService?.AddRecentItem(path);
         RefreshRecentItems();
-    }
-
-    private void RefreshCommandPaletteItems()
-    {
-        FilteredCommandPaletteItems.Clear();
-        foreach (var item in CommandPaletteItems.Where(item => item.Matches(CommandPaletteSearchText)))
-        {
-            FilteredCommandPaletteItems.Add(item);
-        }
-
-        SelectedCommandPaletteItem = FilteredCommandPaletteItems.FirstOrDefault();
     }
 
     private static string GetCurrentVersion()

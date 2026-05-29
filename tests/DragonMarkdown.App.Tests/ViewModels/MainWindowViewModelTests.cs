@@ -153,56 +153,6 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
-    public void OpenCommandPaletteCommand_OpensPaletteAndSelectsFirstCommand()
-    {
-        var viewModel = new MainWindowViewModel();
-
-        viewModel.OpenCommandPaletteCommand.Execute(null);
-
-        Assert.True(viewModel.IsCommandPaletteOpen);
-        Assert.NotEmpty(viewModel.FilteredCommandPaletteItems);
-        Assert.NotNull(viewModel.SelectedCommandPaletteItem);
-    }
-
-    [Fact]
-    public void CommandPaletteSearchText_FiltersCommandsByTitleCategoryAndKeywords()
-    {
-        var viewModel = new MainWindowViewModel();
-        viewModel.OpenCommandPaletteCommand.Execute(null);
-
-        viewModel.CommandPaletteSearchText = "pdf";
-
-        Assert.Contains(viewModel.FilteredCommandPaletteItems, item => item.Title == "Export to PDF");
-        Assert.DoesNotContain(viewModel.FilteredCommandPaletteItems, item => item.Title == "Open Folder");
-    }
-
-    [Fact]
-    public void ExecuteSelectedCommandPaletteItemCommand_RunsCommandAndClosesPalette()
-    {
-        var viewModel = new MainWindowViewModel();
-        viewModel.OpenCommandPaletteCommand.Execute(null);
-        viewModel.SelectedCommandPaletteItem = viewModel.CommandPaletteItems.Single(item => item.Title == "Toggle Preview");
-
-        viewModel.ExecuteSelectedCommandPaletteItemCommand.Execute(null);
-
-        Assert.False(viewModel.IsPreviewVisible);
-        Assert.False(viewModel.IsCommandPaletteOpen);
-    }
-
-    [Fact]
-    public void CloseCommandPaletteCommand_ClosesPaletteAndClearsSearch()
-    {
-        var viewModel = new MainWindowViewModel();
-        viewModel.OpenCommandPaletteCommand.Execute(null);
-        viewModel.CommandPaletteSearchText = "settings";
-
-        viewModel.CloseCommandPaletteCommand.Execute(null);
-
-        Assert.False(viewModel.IsCommandPaletteOpen);
-        Assert.Equal(string.Empty, viewModel.CommandPaletteSearchText);
-    }
-
-    [Fact]
     public void SettingsCommands_OpenAndPersistSettings()
     {
         var settingsService = new RecordingUserSettingsService(new UserSettings(temporaryDirectory, "Dark", false));
