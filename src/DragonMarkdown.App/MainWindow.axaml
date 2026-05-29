@@ -37,6 +37,9 @@
                 <MenuItem Header="Save _All" Command="{Binding SaveAllCommand}" />
                 <Separator />
                 <MenuItem Header="Update Table of _Contents" Command="{Binding UpdateTableOfContentsCommand}" />
+                <MenuItem Header="Insert _Table" Command="{Binding InsertTableCommand}" />
+                <MenuItem Header="Insert _Mermaid Diagram" Command="{Binding InsertMermaidDiagramCommand}" />
+                <MenuItem Header="Insert _Image Markdown" Command="{Binding InsertImageCommand}" />
                 <Separator />
                 <MenuItem Header="_Validate Export Readiness" Command="{Binding ValidateExportReadinessCommand}" />
                 <MenuItem Header="Export to _Word..." Command="{Binding ExportWordCommand}" />
@@ -82,6 +85,9 @@
                 <Button Classes="toolbar-button" Content="Open Folder" Command="{Binding OpenFolderCommand}" />
                 <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveActiveCommand}" />
                 <Button Classes="toolbar-button" Content="TOC" Command="{Binding UpdateTableOfContentsCommand}" />
+                <Button Classes="toolbar-button" Content="Table" Command="{Binding InsertTableCommand}" />
+                <Button Classes="toolbar-button" Content="Mermaid" Command="{Binding InsertMermaidDiagramCommand}" />
+                <Button Classes="toolbar-button" Content="Image" Command="{Binding InsertImageCommand}" />
                 <Button Classes="toolbar-button" Content="Validate Export" Command="{Binding ValidateExportReadinessCommand}" />
                 <Button Classes="toolbar-button" Content="Word" Command="{Binding ExportWordCommand}" />
                 <Button Classes="toolbar-button" Content="PDF" Command="{Binding ExportPdfCommand}" />

@@ -624,6 +624,25 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void VisualHelperCommands_InsertMarkdownScaffolds()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "visual.md");
+        File.WriteAllText(filePath, "# Visual");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFile(filePath);
+
+        viewModel.InsertTableCommand.Execute(null);
+        viewModel.InsertMermaidDiagramCommand.Execute(null);
+        viewModel.InsertImageCommand.Execute(null);
+
+        Assert.Contains("| Column 1 | Column 2 |", viewModel.SelectedDocument!.Text, StringComparison.Ordinal);
+        Assert.Contains("```mermaid", viewModel.SelectedDocument.Text, StringComparison.Ordinal);
+        Assert.Contains("![Alt text](images/example.png)", viewModel.SelectedDocument.Text, StringComparison.Ordinal);
+        Assert.True(viewModel.SelectedDocument.IsDirty);
+        Assert.Equal("Inserted image markdown.", viewModel.StatusText);
+    }
+
+    [Fact]
     public void OpenDocumentBacklinkCommand_OpensReferringDocument()
     {
         Directory.CreateDirectory(Path.Combine(temporaryDirectory, "docs"));

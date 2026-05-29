@@ -79,6 +79,9 @@ public sealed class StaticQualityGateTests
         Assert.Contains("ItemsSource=\"{Binding DocumentBacklinks}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("OpenDocumentBacklinkCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("UpdateTableOfContentsCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("InsertTableCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("InsertMermaidDiagramCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("InsertImageCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("SelectedItem=\"{Binding SelectedOutlineItem, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("ItemsControl Grid.Column=\"1\" ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
@@ -109,6 +112,9 @@ public sealed class StaticQualityGateTests
         Assert.Contains("DocumentBacklinks", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("OpenDocumentBacklinkCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("UpdateTableOfContentsCommand", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("InsertTableCommand", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("InsertMermaidDiagramCommand", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("InsertImageCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("DocumentOutline", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportWordCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportPdfCommand", viewModelSource, StringComparison.Ordinal);

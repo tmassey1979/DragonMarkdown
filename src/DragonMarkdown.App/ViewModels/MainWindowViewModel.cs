@@ -15,7 +15,7 @@ namespace DragonMarkdown.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private const string ShellCoordinatorCommandContracts =
-        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand UpdateTableOfContentsCommand BatchExportPdfCommand";
+        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand UpdateTableOfContentsCommand BatchExportPdfCommand InsertTableCommand InsertMermaidDiagramCommand InsertImageCommand";
 
     public const string EmptyPreviewHtml = """
         <!doctype html>
@@ -632,6 +632,39 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void InsertTable()
+    {
+        InsertMarkdownBlock("""
+
+            | Column 1 | Column 2 |
+            | --- | --- |
+            | Value 1 | Value 2 |
+            """, "Inserted table.");
+    }
+
+    [RelayCommand]
+    private void InsertMermaidDiagram()
+    {
+        InsertMarkdownBlock("""
+
+            ```mermaid
+            graph TD
+                A[Start] --> B[Draft]
+                B --> C[Publish]
+            ```
+            """, "Inserted Mermaid diagram.");
+    }
+
+    [RelayCommand]
+    private void InsertImage()
+    {
+        InsertMarkdownBlock("""
+
+            ![Alt text](images/example.png)
+            """, "Inserted image markdown.");
+    }
+
+    [RelayCommand]
     private void ValidateExportReadiness()
     {
         if (SelectedDocument is null)
@@ -906,6 +939,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ? $"Export validation failed: {FormatExportValidationCounts(result.ValidationReport)}"
             : $"Export failed: {result.ErrorMessage}";
         return false;
+    }
+
+    private void InsertMarkdownBlock(string markdown, string successStatus)
+    {
+        if (SelectedDocument is null)
+        {
+            StatusText = "No active document to edit.";
+            return;
+        }
+
+        SelectedDocument.Text = SelectedDocument.Text.TrimEnd() + Environment.NewLine + markdown.Trim('\r', '\n') + Environment.NewLine;
+        StatusText = successStatus;
     }
 
     private static MarkdownExportRequest CreateExportRequest(
