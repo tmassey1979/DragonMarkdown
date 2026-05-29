@@ -65,7 +65,7 @@ dotnet publish .\src\DragonMarkdown.App\DragonMarkdown.App.csproj -c Release -r 
 dotnet publish .\src\DragonMarkdown.App\DragonMarkdown.App.csproj -c Release -r osx-x64 --self-contained true -o .\artifacts\publish\osx-x64
 ```
 
-Installer packaging is tracked in the release docs and GitHub Actions setup. Native installers should be produced on native runners: Windows for MSI, macOS for DMG/signing/notarization, and Linux for DEB/RPM. The v0.1.0.2 release keeps the public four-part tag and display version while deriving the Windows MSI `ProductVersion` from the first three parts, because MSI package versions are three-part values.
+Installer packaging is tracked in the release docs and GitHub Actions setup. Native installers should be produced on native runners: Windows for MSI, macOS for DMG/signing/notarization, and Linux for DEB/RPM. The v0.1.0.3 release keeps the public four-part tag and display version while deriving the Windows MSI `ProductVersion` from the first three parts, because MSI package versions are three-part values.
 
 ## Repository Layout
 

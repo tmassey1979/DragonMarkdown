@@ -12,7 +12,7 @@ public sealed class GitHubUpdateCheckServiceTests
             HttpStatusCode.OK,
             """{"tag_name":"v9.9.9","html_url":"https://example.test/release"}"""));
 
-        UpdateCheckResult result = await service.CheckForUpdatesAsync("0.1.0.2");
+        UpdateCheckResult result = await service.CheckForUpdatesAsync("0.1.0.3");
 
         Assert.True(result.IsUpdateAvailable);
         Assert.Equal("v9.9.9", result.LatestVersion);
@@ -25,9 +25,9 @@ public sealed class GitHubUpdateCheckServiceTests
     {
         var service = new GitHubUpdateCheckService(CreateClient(
             HttpStatusCode.OK,
-            """{"tag_name":"v0.1.0.2","html_url":"https://example.test/release"}"""));
+            """{"tag_name":"v0.1.0.3","html_url":"https://example.test/release"}"""));
 
-        UpdateCheckResult result = await service.CheckForUpdatesAsync("0.1.0.2");
+        UpdateCheckResult result = await service.CheckForUpdatesAsync("0.1.0.3");
 
         Assert.False(result.IsUpdateAvailable);
         Assert.Equal("DragonMarkdown is up to date.", result.Message);
@@ -38,7 +38,7 @@ public sealed class GitHubUpdateCheckServiceTests
     {
         var service = new GitHubUpdateCheckService(CreateClient(HttpStatusCode.InternalServerError, "{}"));
 
-        UpdateCheckResult result = await service.CheckForUpdatesAsync("0.1.0.2");
+        UpdateCheckResult result = await service.CheckForUpdatesAsync("0.1.0.3");
 
         Assert.False(result.IsUpdateAvailable);
         Assert.StartsWith("Could not check for updates:", result.Message, StringComparison.Ordinal);

@@ -70,8 +70,8 @@ dotnet test .\DragonMarkdown.slnx --no-build
 dotnet test .\DragonMarkdown.slnx --no-build --collect:"XPlat Code Coverage" --settings .\coverlet.runsettings --results-directory .\TestResults\Coverage
 ```
 
-Before v0.1.0.2 release publication, also validate the final release payload with:
+Before v0.1.0.3 release publication, also validate the final release payload with:
 
 ```powershell
-.\build\release\validate-v0.1.0.2-artifacts.ps1 -ArtifactDir .\artifacts\installers
+.\build\release\validate-v0.1.0.3-artifacts.ps1 -ArtifactDir .\artifacts\installers
 ```

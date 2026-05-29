@@ -712,7 +712,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         return Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion
-            ?? "0.1.0.2";
+            ?? "0.1.0.3";
     }
 
     private static string GetUniquePath(string folderPath, string baseName, string extension)
