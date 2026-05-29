@@ -137,10 +137,11 @@
                                        TextTrimming="CharacterEllipsis" />
                         </Grid>
                     </Border>
-                    <ListBox ItemsSource="{Binding WorkspaceSearchResults}"
+                    <ListBox DockPanel.Dock="Top"
+                             ItemsSource="{Binding WorkspaceSearchResults}"
                              SelectedItem="{Binding SelectedWorkspaceSearchResult, Mode=TwoWay}"
                              IsVisible="{Binding IsWorkspaceSearchActive}"
-                             MaxHeight="220"
+                             MaxHeight="160"
                              Margin="6,6,6,0"
                              Background="#FFFFFF"
                              BorderBrush="#D8E0EA"
@@ -162,10 +163,11 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <ListBox ItemsSource="{Binding WorkspaceHealthIssues}"
+                    <ListBox DockPanel.Dock="Top"
+                             ItemsSource="{Binding WorkspaceHealthIssues}"
                              SelectedItem="{Binding SelectedWorkspaceHealthIssue, Mode=TwoWay}"
                              IsVisible="{Binding HasWorkspaceHealthIssues}"
-                             MaxHeight="230"
+                             MaxHeight="170"
                              Margin="6,6,6,0"
                              Background="#FFFFFF"
                              BorderBrush="#D8E0EA"
@@ -193,7 +195,8 @@
                     <TreeView ItemsSource="{Binding WorkspaceItems}"
                               SelectedItem="{Binding SelectedWorkspaceItem}"
                               Margin="6"
-                              Background="Transparent" />
+                              Background="#FFFFFF"
+                              Foreground="#253041" />
                 </DockPanel>
             </Border>
 

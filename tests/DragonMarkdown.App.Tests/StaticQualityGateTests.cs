@@ -76,6 +76,9 @@ public sealed class StaticQualityGateTests
         Assert.Contains("Text=\"{Binding WorkspaceStatisticsSummary}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding GitWorkspaceSummary}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("RefreshGitWorkspaceStatusCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("<ListBox DockPanel.Dock=\"Top\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("<TreeView ItemsSource=\"{Binding WorkspaceItems}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Foreground=\"#253041\" />", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ValidateExportReadinessCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding ExportValidationIssues}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding ExportValidationSummary}\"", windowXaml, StringComparison.Ordinal);
