@@ -15,7 +15,7 @@ namespace DragonMarkdown.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private const string ShellCoordinatorCommandContracts =
-        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand UpdateTableOfContentsCommand";
+        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand UpdateTableOfContentsCommand BatchExportPdfCommand";
 
     public const string EmptyPreviewHtml = """
         <!doctype html>
@@ -33,6 +33,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private readonly DocumentWorkspace documentWorkspace = new();
     private readonly MarkdownExporter exporter = new();
+    private readonly BatchExportService batchExportService = new();
     private readonly MarkdownRenderer renderer = new();
     private readonly MarkdownOutlineBuilder outlineBuilder = new();
     private readonly MarkdownDocumentStatisticsService documentStatisticsService = new();
@@ -151,6 +152,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private bool settingsWordWrap = UserSettings.Default.WordWrap;
+
+    [ObservableProperty]
+    private string exportPageSize = "Letter";
+
+    [ObservableProperty]
+    private double exportMarginPoints = 42;
+
+    [ObservableProperty]
+    private bool exportHeaderFooterEnabled;
+
+    [ObservableProperty]
+    private string exportHeaderText = string.Empty;
+
+    [ObservableProperty]
+    private string exportFooterText = string.Empty;
 
     public string? WorkspaceRootPath { get; private set; }
 
@@ -587,6 +603,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void BatchExportPdf()
+    {
+        if (string.IsNullOrWhiteSpace(WorkspaceRootPath) || !Directory.Exists(WorkspaceRootPath))
+        {
+            StatusText = "Open a folder before batch export.";
+            return;
+        }
+
+        var outputFolder = Path.Combine(WorkspaceRootPath, "DragonMarkdown Exports");
+        var report = batchExportService.ExportFolder(WorkspaceRootPath, outputFolder, CreateExportProfile(ExportFormat.Pdf));
+        int succeeded = report.Results.Count(result => result.Succeeded);
+        StatusText = $"Batch exported {succeeded} of {report.Results.Count} PDF documents.";
+        RefreshWorkspaceTree();
+    }
+
+    [RelayCommand]
     private void UpdateTableOfContents()
     {
         if (SelectedDocument is null)
@@ -611,7 +643,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var request = CreateExportRequest(SelectedDocument, SelectedDocument.Document.FilePath, ExportFormat.Pdf);
+        var request = CreateExportRequest(
+            SelectedDocument,
+            SelectedDocument.Document.FilePath,
+            ExportFormat.Pdf,
+            CreateExportProfile(ExportFormat.Pdf));
         var report = exportValidationService.Validate(request);
         ApplyExportValidationReport(report);
         StatusText = ExportValidationSummary;
@@ -857,7 +893,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return false;
         }
 
-        var request = CreateExportRequest(document, outputPath, format);
+        var request = CreateExportRequest(document, outputPath, format, CreateExportProfile(format));
         result = exporter.Export(request, options);
         ApplyExportValidationReport(result.ValidationReport);
 
@@ -875,18 +911,29 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private static MarkdownExportRequest CreateExportRequest(
         OpenDocumentViewModel document,
         string outputPath,
-        ExportFormat format)
+        ExportFormat format,
+        ExportProfile profile)
     {
-        var profile = format == ExportFormat.Word
-            ? ExportProfile.Word("Word")
-            : ExportProfile.Pdf("PDF");
-
         return new MarkdownExportRequest(
             document.Text,
             document.Document.FilePath,
             outputPath,
             format,
             profile);
+    }
+
+    private ExportProfile CreateExportProfile(ExportFormat format)
+    {
+        var profile = format == ExportFormat.Word
+            ? ExportProfile.Word("Word")
+            : ExportProfile.Pdf("PDF");
+
+        return profile
+            .WithPageSetup(new ExportPageSetup(ExportPageSize, (float)ExportMarginPoints))
+            .WithHeaderFooter(new ExportHeaderFooterOptions(
+                ExportHeaderFooterEnabled,
+                string.IsNullOrWhiteSpace(ExportHeaderText) ? null : ExportHeaderText,
+                string.IsNullOrWhiteSpace(ExportFooterText) ? null : ExportFooterText));
     }
 
     private MarkdownRenderOptions CreateRenderOptions(OpenDocumentViewModel document)

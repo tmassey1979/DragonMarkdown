@@ -336,6 +336,41 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void ExportMethods_UseExportStudioSettings()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "export-profile.md");
+        var pdfPath = Path.Combine(temporaryDirectory, "export-profile.pdf");
+        File.WriteAllText(filePath, "# Export Profile");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFile(filePath);
+        viewModel.ExportPageSize = "A4";
+        viewModel.ExportMarginPoints = 36;
+        viewModel.ExportHeaderFooterEnabled = true;
+        viewModel.ExportFooterText = "Page footer";
+
+        viewModel.ExportActiveDocumentToPdf(pdfPath);
+
+        Assert.True(File.Exists(pdfPath));
+        Assert.Equal("Exported PDF export-profile.pdf", viewModel.StatusText);
+    }
+
+    [Fact]
+    public void BatchExportPdfCommand_ExportsWorkspaceMarkdownFiles()
+    {
+        File.WriteAllText(Path.Combine(temporaryDirectory, "README.md"), "# Home");
+        File.WriteAllText(Path.Combine(temporaryDirectory, "guide.md"), "# Guide");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFolder(temporaryDirectory);
+
+        viewModel.BatchExportPdfCommand.Execute(null);
+
+        var outputFolder = Path.Combine(temporaryDirectory, "DragonMarkdown Exports");
+        Assert.True(File.Exists(Path.Combine(outputFolder, "README.pdf")));
+        Assert.True(File.Exists(Path.Combine(outputFolder, "guide.pdf")));
+        Assert.Equal("Batch exported 2 of 2 PDF documents.", viewModel.StatusText);
+    }
+
+    [Fact]
     public void ExportMethods_OpenGeneratedDocumentWhenOpenerIsConfigured()
     {
         var filePath = Path.Combine(temporaryDirectory, "export-open.md");

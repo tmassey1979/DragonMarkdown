@@ -86,6 +86,9 @@ public sealed class StaticQualityGateTests
         Assert.Contains("IsVisible=\"{Binding IsSettingsOpen}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Command=\"{Binding ExportWordCommand}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Command=\"{Binding ExportPdfCommand}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("BatchExportPdfCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding ExportPageSize, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding ExportHeaderText, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -109,6 +112,8 @@ public sealed class StaticQualityGateTests
         Assert.Contains("DocumentOutline", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportWordCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportPdfCommand", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("BatchExportPdfCommand", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("ExportPageSize", viewModelSource, StringComparison.Ordinal);
     }
 
     private static string Read(string relativePath)
