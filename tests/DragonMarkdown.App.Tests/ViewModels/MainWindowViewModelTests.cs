@@ -31,6 +31,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         Assert.NotEmpty(viewModel.WorkspaceItems);
         Assert.Empty(viewModel.OpenDocuments);
         Assert.Contains(Path.GetFullPath(temporaryDirectory), recentItemsService.Paths);
+        Assert.Equal("1 document | 1 word | 1 heading | 1 min read", viewModel.WorkspaceStatisticsSummary);
     }
 
     [Fact]

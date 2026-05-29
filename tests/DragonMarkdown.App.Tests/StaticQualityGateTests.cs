@@ -26,6 +26,8 @@ public sealed class StaticQualityGateTests
     [InlineData("src/DragonMarkdown.Core/Documents/MarkdownTableOfContentsService.cs", "MarkdownTableOfContentsService")]
     [InlineData("src/DragonMarkdown.Core/Workspaces/WorkspaceBacklink.cs", "WorkspaceBacklink")]
     [InlineData("src/DragonMarkdown.Core/Workspaces/WorkspaceBacklinkService.cs", "WorkspaceBacklinkService")]
+    [InlineData("src/DragonMarkdown.Core/Workspaces/WorkspaceStatistics.cs", "WorkspaceStatistics")]
+    [InlineData("src/DragonMarkdown.Core/Workspaces/WorkspaceStatisticsService.cs", "WorkspaceStatisticsService")]
     [InlineData("src/DragonMarkdown.Core/Rendering/BlockedMarkdownReference.cs", "BlockedMarkdownReference")]
     [InlineData("src/DragonMarkdown.Core/Rendering/MarkdownReferenceBlockReason.cs", "MarkdownReferenceBlockReason")]
     [InlineData("src/DragonMarkdown.Core/Rendering/MarkdownReferenceKind.cs", "MarkdownReferenceKind")]
@@ -69,6 +71,7 @@ public sealed class StaticQualityGateTests
         Assert.Contains("RefreshWorkspaceHealthCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding WorkspaceHealthIssues}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding WorkspaceHealthSummary}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding WorkspaceStatisticsSummary}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ValidateExportReadinessCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding ExportValidationIssues}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding ExportValidationSummary}\"", windowXaml, StringComparison.Ordinal);
@@ -96,6 +99,7 @@ public sealed class StaticQualityGateTests
         Assert.Contains("WorkspaceSearchText", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("WorkspaceHealthIssues", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("WorkspaceHealthSummary", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("WorkspaceStatisticsSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportValidationIssues", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportValidationSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ActiveDocumentStatisticsSummary", viewModelSource, StringComparison.Ordinal);

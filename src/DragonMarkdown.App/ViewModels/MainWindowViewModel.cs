@@ -39,6 +39,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownTableOfContentsService tableOfContentsService = new();
     private readonly WorkspaceSearchService workspaceSearchService = new();
     private readonly WorkspaceBacklinkService workspaceBacklinkService = new();
+    private readonly WorkspaceStatisticsService workspaceStatisticsService = new();
     private readonly WorkspaceHealthAnalyzer workspaceHealthAnalyzer = new();
     private readonly ExportValidationService exportValidationService = new();
     private readonly IExportedDocumentOpener? exportedDocumentOpener;
@@ -126,6 +127,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string workspaceHealthSummary = "Docs health not analyzed";
+
+    [ObservableProperty]
+    private string workspaceStatisticsSummary = "No workspace statistics";
 
     [ObservableProperty]
     private string exportValidationSummary = "Export readiness not checked";
@@ -267,6 +271,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         WorkspaceLabel = WorkspaceRootPath;
         RefreshWorkspaceTree();
         RefreshWorkspaceSearch();
+        RefreshWorkspaceStatistics();
         RefreshWorkspaceHealth();
         AddRecentItem(WorkspaceRootPath);
         StatusText = $"Opened folder {WorkspaceRootPath}";
@@ -449,6 +454,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             WorkspaceSearchResults.Add(result);
         }
+    }
+
+    private void RefreshWorkspaceStatistics()
+    {
+        if (string.IsNullOrWhiteSpace(WorkspaceRootPath) || !Directory.Exists(WorkspaceRootPath))
+        {
+            WorkspaceStatisticsSummary = "No workspace statistics";
+            return;
+        }
+
+        var statistics = workspaceStatisticsService.Analyze(WorkspaceRootPath);
+        WorkspaceStatisticsSummary = $"{statistics.DocumentCount} {Pluralize(statistics.DocumentCount, "document")} | "
+            + $"{statistics.WordCount} {Pluralize(statistics.WordCount, "word")} | "
+            + $"{statistics.HeadingCount} {Pluralize(statistics.HeadingCount, "heading")} | "
+            + $"{statistics.EstimatedReadingMinutes} min read";
     }
 
     [RelayCommand]
