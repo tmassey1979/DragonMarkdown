@@ -531,6 +531,33 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpeningDocument_UpdatesActiveDocumentStatistics()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "stats.md");
+        File.WriteAllText(filePath, "# Stats" + Environment.NewLine + "DragonMarkdown tracks useful writing data.");
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.OpenFile(filePath);
+
+        Assert.Equal("6 words | 1 heading | 0 links | 0 images | 1 min read", viewModel.ActiveDocumentStatisticsSummary);
+    }
+
+    [Fact]
+    public async Task EditingDocument_UpdatesActiveDocumentStatisticsAfterPreviewRefresh()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "stats-edit.md");
+        File.WriteAllText(filePath, "# Before");
+        var scheduler = new ManualPreviewRefreshScheduler();
+        var viewModel = new MainWindowViewModel(previewRefreshScheduler: scheduler);
+        viewModel.OpenFile(filePath);
+
+        viewModel.SelectedDocument!.Text = "# After" + Environment.NewLine + "[Link](next.md) ![Image](logo.png)";
+        await scheduler.RunLatestAsync();
+
+        Assert.Equal("1 word | 1 heading | 1 link | 1 image | 1 min read", viewModel.ActiveDocumentStatisticsSummary);
+    }
+
+    [Fact]
     public void SelectingOutlineItem_RaisesPreviewAnchorRequestAndUpdatesStatus()
     {
         var filePath = Path.Combine(temporaryDirectory, "outline-anchor.md");

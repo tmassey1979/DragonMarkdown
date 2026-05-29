@@ -20,6 +20,8 @@ public sealed class StaticQualityGateTests
     [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthIssue.cs", "WorkspaceHealthIssue")]
     [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthIssueSeverity.cs", "WorkspaceHealthIssueSeverity")]
     [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthReport.cs", "WorkspaceHealthReport")]
+    [InlineData("src/DragonMarkdown.Core/Documents/MarkdownDocumentStatistics.cs", "MarkdownDocumentStatistics")]
+    [InlineData("src/DragonMarkdown.Core/Documents/MarkdownDocumentStatisticsService.cs", "MarkdownDocumentStatisticsService")]
     [InlineData("src/DragonMarkdown.Core/Rendering/BlockedMarkdownReference.cs", "BlockedMarkdownReference")]
     [InlineData("src/DragonMarkdown.Core/Rendering/MarkdownReferenceBlockReason.cs", "MarkdownReferenceBlockReason")]
     [InlineData("src/DragonMarkdown.Core/Rendering/MarkdownReferenceKind.cs", "MarkdownReferenceKind")]
@@ -66,6 +68,7 @@ public sealed class StaticQualityGateTests
         Assert.Contains("ValidateExportReadinessCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding ExportValidationIssues}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding ExportValidationSummary}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding ActiveDocumentStatisticsSummary}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("SelectedItem=\"{Binding SelectedOutlineItem, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("ItemsControl Grid.Column=\"1\" ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
@@ -88,6 +91,7 @@ public sealed class StaticQualityGateTests
         Assert.Contains("WorkspaceHealthSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportValidationIssues", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportValidationSummary", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("ActiveDocumentStatisticsSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("DocumentOutline", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportWordCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportPdfCommand", viewModelSource, StringComparison.Ordinal);

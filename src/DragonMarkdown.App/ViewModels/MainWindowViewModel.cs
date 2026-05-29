@@ -35,6 +35,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownExporter exporter = new();
     private readonly MarkdownRenderer renderer = new();
     private readonly MarkdownOutlineBuilder outlineBuilder = new();
+    private readonly MarkdownDocumentStatisticsService documentStatisticsService = new();
     private readonly WorkspaceSearchService workspaceSearchService = new();
     private readonly WorkspaceHealthAnalyzer workspaceHealthAnalyzer = new();
     private readonly ExportValidationService exportValidationService = new();
@@ -123,6 +124,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string exportValidationSummary = "Export readiness not checked";
+
+    [ObservableProperty]
+    private string activeDocumentStatisticsSummary = "No document";
 
     [ObservableProperty]
     private MarkdownOutlineItem? selectedOutlineItem;
@@ -317,6 +321,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (SelectedDocument is null)
         {
             DocumentOutline.Clear();
+            ActiveDocumentStatisticsSummary = "No document";
             PreviewHtmlChanged?.Invoke(this, EmptyPreviewHtml);
             return;
         }
@@ -330,6 +335,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new MarkdownRenderOptions(workspaceRoot, SelectedDocument.Document.FilePath));
 
         RefreshDocumentOutline(SelectedDocument.Text);
+        RefreshDocumentStatistics(SelectedDocument.Text);
         PreviewHtmlChanged?.Invoke(this, result.Html);
     }
 
@@ -363,6 +369,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 }
 
                 RefreshDocumentOutline(markdown);
+                RefreshDocumentStatistics(markdown);
                 PreviewHtmlChanged?.Invoke(this, result.Html);
                 return Task.CompletedTask;
             });
@@ -381,6 +388,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             DocumentOutline.Add(item);
         }
+    }
+
+    private void RefreshDocumentStatistics(string markdown)
+    {
+        var statistics = documentStatisticsService.Analyze(markdown);
+        ActiveDocumentStatisticsSummary = $"{statistics.WordCount} {Pluralize(statistics.WordCount, "word")} | "
+            + $"{statistics.HeadingCount} {Pluralize(statistics.HeadingCount, "heading")} | "
+            + $"{statistics.LinkCount} {Pluralize(statistics.LinkCount, "link")} | "
+            + $"{statistics.ImageCount} {Pluralize(statistics.ImageCount, "image")} | "
+            + $"{statistics.EstimatedReadingMinutes} min read";
     }
 
     private void RefreshWorkspaceSearch()
