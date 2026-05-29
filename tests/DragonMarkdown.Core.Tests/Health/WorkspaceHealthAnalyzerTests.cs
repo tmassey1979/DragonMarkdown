@@ -111,6 +111,46 @@ public sealed class WorkspaceHealthAnalyzerTests : IDisposable
             && issue.DocumentPath == readme);
     }
 
+    [Fact]
+    public void Analyze_reports_dead_assets_that_are_not_referenced()
+    {
+        string readme = Path.Combine(workspaceRoot, "README.md");
+        string usedImage = Path.Combine(workspaceRoot, "used.png");
+        string deadImage = Path.Combine(workspaceRoot, "dead.png");
+        File.WriteAllText(readme, "# Home" + Environment.NewLine + "![Used](used.png)");
+        File.WriteAllText(usedImage, "used");
+        File.WriteAllText(deadImage, "dead");
+        var analyzer = new WorkspaceHealthAnalyzer();
+
+        WorkspaceHealthReport report = analyzer.Analyze(workspaceRoot);
+
+        report.Issues.Should().Contain(issue =>
+            issue.Code == WorkspaceHealthIssueCodes.DeadAsset
+            && issue.DocumentPath == deadImage);
+        report.Issues.Should().NotContain(issue =>
+            issue.Code == WorkspaceHealthIssueCodes.DeadAsset
+            && issue.DocumentPath == usedImage);
+    }
+
+    [Fact]
+    public void Analyze_reports_duplicate_heading_slugs()
+    {
+        string readme = Path.Combine(workspaceRoot, "README.md");
+        File.WriteAllText(readme, """
+            # API Guide
+
+            ## API-Guide
+            """);
+        var analyzer = new WorkspaceHealthAnalyzer();
+
+        WorkspaceHealthReport report = analyzer.Analyze(workspaceRoot);
+
+        report.Issues.Should().Contain(issue =>
+            issue.Code == WorkspaceHealthIssueCodes.DuplicateHeadingSlug
+            && issue.DocumentPath == readme
+            && issue.Reference == "api-guide");
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(workspaceRoot))

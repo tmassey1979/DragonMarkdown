@@ -8,4 +8,6 @@ public static class WorkspaceHealthIssueCodes
     public const string MalformedFrontMatter = nameof(MalformedFrontMatter);
     public const string UnsupportedMermaid = nameof(UnsupportedMermaid);
     public const string OrphanDocument = nameof(OrphanDocument);
+    public const string DeadAsset = nameof(DeadAsset);
+    public const string DuplicateHeadingSlug = nameof(DuplicateHeadingSlug);
 }

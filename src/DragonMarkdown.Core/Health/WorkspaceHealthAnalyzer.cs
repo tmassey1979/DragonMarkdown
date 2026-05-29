@@ -27,14 +27,16 @@ public sealed partial class WorkspaceHealthAnalyzer
 
         var issues = new List<WorkspaceHealthIssue>();
         var linkedDocuments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var referencedAssets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (string documentPath in markdownFiles)
         {
             string markdown = File.ReadAllText(documentPath);
-            AnalyzeDocument(documentPath, markdown, linkedDocuments, issues);
+            AnalyzeDocument(documentPath, markdown, linkedDocuments, referencedAssets, issues);
         }
 
         AddOrphanDocumentIssues(markdownFiles, linkedDocuments, issues);
+        AddDeadAssetIssues(root, referencedAssets, issues);
         return new WorkspaceHealthReport(issues);
     }
 
@@ -42,9 +44,10 @@ public sealed partial class WorkspaceHealthAnalyzer
         string documentPath,
         string markdown,
         ISet<string> linkedDocuments,
+        ISet<string> referencedAssets,
         ICollection<WorkspaceHealthIssue> issues)
     {
-        AddReferenceIssues(documentPath, markdown, linkedDocuments, issues);
+        AddReferenceIssues(documentPath, markdown, linkedDocuments, referencedAssets, issues);
         AddDuplicateHeadingIssues(documentPath, markdown, issues);
         AddFrontMatterIssues(documentPath, markdown, issues);
         AddMermaidIssues(documentPath, markdown, issues);
@@ -54,6 +57,7 @@ public sealed partial class WorkspaceHealthAnalyzer
         string documentPath,
         string markdown,
         ISet<string> linkedDocuments,
+        ISet<string> referencedAssets,
         ICollection<WorkspaceHealthIssue> issues)
     {
         foreach (Match match in ImageRegex().Matches(markdown))
@@ -65,6 +69,7 @@ public sealed partial class WorkspaceHealthAnalyzer
             }
 
             string resolvedPath = ResolveReference(documentPath, reference);
+            referencedAssets.Add(Path.GetFullPath(resolvedPath));
             if (!File.Exists(resolvedPath))
             {
                 issues.Add(new WorkspaceHealthIssue(
@@ -89,6 +94,10 @@ public sealed partial class WorkspaceHealthAnalyzer
             if (IsMarkdownFile(resolvedPath))
             {
                 linkedDocuments.Add(Path.GetFullPath(resolvedPath));
+            }
+            else if (!Directory.Exists(resolvedPath))
+            {
+                referencedAssets.Add(Path.GetFullPath(resolvedPath));
             }
 
             if (!File.Exists(resolvedPath) && !Directory.Exists(resolvedPath))
@@ -120,6 +129,21 @@ public sealed partial class WorkspaceHealthAnalyzer
                 WorkspaceHealthIssueCodes.DuplicateHeading,
                 WorkspaceHealthIssueSeverity.Warning,
                 $"Heading appears more than once: {group.Key}",
+                documentPath,
+                group.Key));
+        }
+
+        var duplicateSlugGroups = outlineBuilder
+            .Build(markdown)
+            .GroupBy(item => CreateHeadingBaseSlug(item.Title), StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1);
+
+        foreach (var group in duplicateSlugGroups)
+        {
+            issues.Add(new WorkspaceHealthIssue(
+                WorkspaceHealthIssueCodes.DuplicateHeadingSlug,
+                WorkspaceHealthIssueSeverity.Warning,
+                $"Generated heading anchor appears more than once: {group.Key}",
                 documentPath,
                 group.Key));
         }
@@ -189,6 +213,27 @@ public sealed partial class WorkspaceHealthAnalyzer
         }
     }
 
+    private static void AddDeadAssetIssues(
+        string workspaceRoot,
+        ISet<string> referencedAssets,
+        ICollection<WorkspaceHealthIssue> issues)
+    {
+        foreach (string assetPath in EnumerateAssetFiles(workspaceRoot))
+        {
+            string fullPath = Path.GetFullPath(assetPath);
+            if (referencedAssets.Contains(fullPath))
+            {
+                continue;
+            }
+
+            issues.Add(new WorkspaceHealthIssue(
+                WorkspaceHealthIssueCodes.DeadAsset,
+                WorkspaceHealthIssueSeverity.Info,
+                "Asset file is not referenced by any markdown document.",
+                fullPath));
+        }
+    }
+
     private static string NormalizeMarkdownReference(string reference)
     {
         string withoutTitle = reference.Trim();
@@ -225,6 +270,44 @@ public sealed partial class WorkspaceHealthAnalyzer
         return extension.Equals(".md", StringComparison.OrdinalIgnoreCase)
             || extension.Equals(".markdown", StringComparison.OrdinalIgnoreCase)
             || extension.Equals(".mdown", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IEnumerable<string> EnumerateAssetFiles(string workspaceRoot) =>
+        Directory
+            .EnumerateFiles(workspaceRoot, "*.*", SearchOption.AllDirectories)
+            .Where(IsAssetFile)
+            .Where(path => !IsSkippedPath(workspaceRoot, path));
+
+    private static bool IsAssetFile(string path)
+    {
+        string extension = Path.GetExtension(path);
+        return extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".gif", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".svg", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".webp", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string CreateHeadingBaseSlug(string title)
+    {
+        var parts = title
+            .ToLowerInvariant()
+            .Split([' ', '-', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        return string.Join("-", parts.Select(part => new string(part.Where(char.IsLetterOrDigit).ToArray())))
+            .Trim('-');
+    }
+
+    private static bool IsSkippedPath(string workspaceRoot, string path)
+    {
+        string relativePath = Path.GetRelativePath(workspaceRoot, path);
+        return relativePath
+            .Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries)
+            .Any(segment => segment.Equals(".git", StringComparison.OrdinalIgnoreCase)
+                || segment.Equals("bin", StringComparison.OrdinalIgnoreCase)
+                || segment.Equals("obj", StringComparison.OrdinalIgnoreCase)
+                || segment.Equals("artifacts", StringComparison.OrdinalIgnoreCase));
     }
 
     private static int GetLineNumber(string markdown, int matchIndex) =>
