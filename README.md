@@ -9,8 +9,10 @@ DragonMarkdown is a cross-platform desktop markdown editor and viewer written in
 - Edit markdown and preview rendered output side by side.
 - Hide the editor or preview pane and automatically expand the other pane.
 - Render advanced markdown through Markdig, including tables, task lists, footnotes, YAML front matter, MathJax, Prism highlighting, and Mermaid preview support.
-- Export the active document to Word or PDF.
+- Export the active document to Word or PDF with page setup, header/footer options, validation, and batch PDF export.
 - Render common Mermaid `graph` and `flowchart` fences into export diagrams.
+- Analyze docs health for broken links, missing images, duplicate anchors, orphan documents, dead assets, and unsupported export diagrams.
+- Use writing helpers for generated tables of contents, tables, Mermaid diagrams, image markdown, backlinks, active document statistics, workspace statistics, and git workspace status.
 - Open packaged help and About screens from the Help menu.
 
 ## Requirements
@@ -65,7 +67,7 @@ dotnet publish .\src\DragonMarkdown.App\DragonMarkdown.App.csproj -c Release -r 
 dotnet publish .\src\DragonMarkdown.App\DragonMarkdown.App.csproj -c Release -r osx-x64 --self-contained true -o .\artifacts\publish\osx-x64
 ```
 
-Installer packaging is tracked in the release docs and GitHub Actions setup. Native installers should be produced on native runners: Windows for MSI, macOS for DMG/signing/notarization, and Linux for DEB/RPM. The v0.1.0.3 release keeps the public four-part tag and display version while deriving the Windows MSI `ProductVersion` from the first three parts, because MSI package versions are three-part values.
+Installer packaging is tracked in the release docs and GitHub Actions setup. Native installers should be produced on native runners: Windows for MSI, macOS for DMG/signing/notarization, and Linux for DEB/RPM. The v0.1.0.4 release keeps the public four-part tag and display version while deriving the Windows MSI `ProductVersion` from the first three parts, because MSI package versions are three-part values.
 
 ## Repository Layout
 

@@ -33,7 +33,7 @@ Installer requirements:
 - Program Files install path.
 - Clean uninstall.
 - Upgrade code for in-place upgrades.
-- MSI `ProductVersion` is derived from the first three parts of the public version. For v0.1.0.3, the MSI product version is `0.1.0`, while filenames, tags, and app metadata remain `0.1.0.3`.
+- MSI `ProductVersion` is derived from the first three parts of the public version. For v0.1.0.4, the MSI product version is `0.1.0`, while filenames, tags, and app metadata remain `0.1.0.4`.
 - Optional `.md`, `.markdown`, and `.mdown` file association.
 - Authenticode signing.
 

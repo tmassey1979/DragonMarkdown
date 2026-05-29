@@ -11,7 +11,7 @@ Target:
 - Start Menu shortcut
 - App icon in the shortcut and Add/Remove Programs
 - Uninstall support
-- Public four-part app versions are supported. For v0.1.0.3, the MSI `ProductVersion` is derived as `0.1.0` to satisfy Windows Installer version rules.
+- Public four-part app versions are supported. For v0.1.0.4, the MSI `ProductVersion` is derived as `0.1.0` to satisfy Windows Installer version rules.
 - Optional markdown file association
 - Code signing
 

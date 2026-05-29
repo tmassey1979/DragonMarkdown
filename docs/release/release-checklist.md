@@ -10,18 +10,18 @@ Use this checklist for every DragonMarkdown release.
 - Run coverage with `coverlet.runsettings`.
 - Confirm each test package reports at least 80% package-level line coverage for testable code.
 - Confirm app version in release tag matches the package version.
-- For v0.1.0.3, confirm Windows MSI metadata uses `ProductVersion=0.1.0` while the release tag, app metadata, and installer filenames use `0.1.0.3`.
+- For v0.1.0.4, confirm Windows MSI metadata uses `ProductVersion=0.1.0` while the release tag, app metadata, and installer filenames use `0.1.0.4`.
 - Confirm release notes include user-facing changes and known limitations.
 
 ## Package Build
 
-- Windows MSI created on Windows runner: `DragonMarkdown-0.1.0.3-win-x64.msi`.
-- macOS DMG created on macOS runner: `DragonMarkdown-0.1.0.3-osx-x64.dmg`.
+- Windows MSI created on Windows runner: `DragonMarkdown-0.1.0.4-win-x64.msi`.
+- macOS DMG created on macOS runner: `DragonMarkdown-0.1.0.4-osx-x64.dmg`.
 - Linux DEB and RPM created on Linux runner:
-  - `dragonmarkdown_0.1.0.3_amd64.deb`
-  - `dragonmarkdown_0.1.0.3_arm64.deb`
-  - `dragonmarkdown-0.1.0.3.x86_64.rpm`
-  - `dragonmarkdown-0.1.0.3.aarch64.rpm`
+  - `dragonmarkdown_0.1.0.4_amd64.deb`
+  - `dragonmarkdown_0.1.0.4_arm64.deb`
+  - `dragonmarkdown-0.1.0.4.x86_64.rpm`
+  - `dragonmarkdown-0.1.0.4.aarch64.rpm`
 - SHA256 checksums generated once in the publish job after artifact download.
 
 ## Signing

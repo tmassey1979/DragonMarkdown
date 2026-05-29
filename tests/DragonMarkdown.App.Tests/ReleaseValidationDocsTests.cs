@@ -5,16 +5,16 @@ public sealed class ReleaseValidationDocsTests
     private static readonly string RepositoryRoot = FindRepositoryRoot();
 
     [Fact]
-    public void ReleaseChecklistNamesEveryV0102InstallerArtifact()
+    public void ReleaseChecklistNamesEveryV0104InstallerArtifact()
     {
         var checklist = Read("docs/release/release-checklist.md");
 
-        Assert.Contains("DragonMarkdown-0.1.0.3-win-x64.msi", checklist, StringComparison.Ordinal);
-        Assert.Contains("DragonMarkdown-0.1.0.3-osx-x64.dmg", checklist, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown_0.1.0.3_amd64.deb", checklist, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown_0.1.0.3_arm64.deb", checklist, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown-0.1.0.3.x86_64.rpm", checklist, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown-0.1.0.3.aarch64.rpm", checklist, StringComparison.Ordinal);
+        Assert.Contains("DragonMarkdown-0.1.0.4-win-x64.msi", checklist, StringComparison.Ordinal);
+        Assert.Contains("DragonMarkdown-0.1.0.4-osx-x64.dmg", checklist, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown_0.1.0.4_amd64.deb", checklist, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown_0.1.0.4_arm64.deb", checklist, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown-0.1.0.4.x86_64.rpm", checklist, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown-0.1.0.4.aarch64.rpm", checklist, StringComparison.Ordinal);
         Assert.Contains("SHA256SUMS.txt", checklist, StringComparison.Ordinal);
     }
 
@@ -38,16 +38,16 @@ public sealed class ReleaseValidationDocsTests
     }
 
     [Fact]
-    public void ArtifactValidationScriptTracksAllV0102PackageNames()
+    public void ArtifactValidationScriptTracksAllV0104PackageNames()
     {
-        var script = Read("build/release/validate-v0.1.0.3-artifacts.ps1");
+        var script = Read("build/release/validate-v0.1.0.4-artifacts.ps1");
 
-        Assert.Contains("DragonMarkdown-0.1.0.3-win-x64.msi", script, StringComparison.Ordinal);
-        Assert.Contains("DragonMarkdown-0.1.0.3-osx-x64.dmg", script, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown_0.1.0.3_amd64.deb", script, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown_0.1.0.3_arm64.deb", script, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown-0.1.0.3.x86_64.rpm", script, StringComparison.Ordinal);
-        Assert.Contains("dragonmarkdown-0.1.0.3.aarch64.rpm", script, StringComparison.Ordinal);
+        Assert.Contains("DragonMarkdown-0.1.0.4-win-x64.msi", script, StringComparison.Ordinal);
+        Assert.Contains("DragonMarkdown-0.1.0.4-osx-x64.dmg", script, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown_0.1.0.4_amd64.deb", script, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown_0.1.0.4_arm64.deb", script, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown-0.1.0.4.x86_64.rpm", script, StringComparison.Ordinal);
+        Assert.Contains("dragonmarkdown-0.1.0.4.aarch64.rpm", script, StringComparison.Ordinal);
         Assert.Contains("SHA256SUMS.txt", script, StringComparison.Ordinal);
     }
 

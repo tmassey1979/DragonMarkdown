@@ -24,7 +24,7 @@
                     CornerRadius="6"
                     Padding="12">
                 <StackPanel Spacing="5">
-                    <TextBlock Text="Version 0.1.0.3" Foreground="#253041" />
+                    <TextBlock Text="Version 0.1.0.4" Foreground="#253041" />
                     <TextBlock Text="Built with Avalonia and .NET" Foreground="#253041" />
                     <TextBlock Text="Supports markdown preview, Mermaid diagrams, Word export, and PDF export." TextWrapping="Wrap" Foreground="#253041" />
                 </StackPanel>

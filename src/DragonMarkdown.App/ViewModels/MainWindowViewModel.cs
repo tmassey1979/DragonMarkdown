@@ -1081,7 +1081,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         return Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion
-            ?? "0.1.0.3";
+            ?? "0.1.0.4";
     }
 
     private static string FormatWorkspaceHealthSummary(WorkspaceHealthReport report)
