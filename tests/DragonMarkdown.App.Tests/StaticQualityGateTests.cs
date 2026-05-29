@@ -15,6 +15,10 @@ public sealed class StaticQualityGateTests
     [InlineData("src/DragonMarkdown.App/Services/IPreviewRefreshScheduler.cs", "IPreviewRefreshScheduler")]
     [InlineData("src/DragonMarkdown.App/ViewModels/WorkspaceNodeKind.cs", "WorkspaceNodeKind")]
     [InlineData("src/DragonMarkdown.App/ViewModels/WorkspaceNodeViewModel.cs", "WorkspaceNodeViewModel")]
+    [InlineData("src/DragonMarkdown.App/ViewModels/WorkspaceHealthIssueViewModel.cs", "WorkspaceHealthIssueViewModel")]
+    [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthIssue.cs", "WorkspaceHealthIssue")]
+    [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthIssueSeverity.cs", "WorkspaceHealthIssueSeverity")]
+    [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthReport.cs", "WorkspaceHealthReport")]
     [InlineData("src/DragonMarkdown.Core/Rendering/BlockedMarkdownReference.cs", "BlockedMarkdownReference")]
     [InlineData("src/DragonMarkdown.Core/Rendering/MarkdownReferenceBlockReason.cs", "MarkdownReferenceBlockReason")]
     [InlineData("src/DragonMarkdown.Core/Rendering/MarkdownReferenceKind.cs", "MarkdownReferenceKind")]
@@ -55,6 +59,9 @@ public sealed class StaticQualityGateTests
         Assert.Contains("Text=\"{Binding WorkspaceSearchText, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding WorkspaceSearchResults}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("OpenWorkspaceSearchResultCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("RefreshWorkspaceHealthCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("ItemsSource=\"{Binding WorkspaceHealthIssues}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding WorkspaceHealthSummary}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("SelectedItem=\"{Binding SelectedOutlineItem, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("ItemsControl Grid.Column=\"1\" ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
@@ -73,6 +80,8 @@ public sealed class StaticQualityGateTests
         Assert.Contains("OpenSettingsCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("CheckForUpdatesCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("WorkspaceSearchText", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("WorkspaceHealthIssues", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("WorkspaceHealthSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("DocumentOutline", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportWordCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportPdfCommand", viewModelSource, StringComparison.Ordinal);

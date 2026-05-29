@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using DragonMarkdown.App.Services;
 using DragonMarkdown.Core.Documents;
 using DragonMarkdown.Core.Exporting;
+using DragonMarkdown.Core.Health;
 using DragonMarkdown.Core.Rendering;
 using DragonMarkdown.Core.Workspaces;
 
@@ -35,6 +36,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownRenderer renderer = new();
     private readonly MarkdownOutlineBuilder outlineBuilder = new();
     private readonly WorkspaceSearchService workspaceSearchService = new();
+    private readonly WorkspaceHealthAnalyzer workspaceHealthAnalyzer = new();
     private readonly IExportedDocumentOpener? exportedDocumentOpener;
     private readonly IUserSettingsService? userSettingsService;
     private readonly IUpdateCheckService? updateCheckService;
@@ -68,6 +70,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OpenDocuments = [];
         DocumentOutline = [];
         WorkspaceSearchResults = [];
+        WorkspaceHealthIssues = [];
         RecentItems = [];
         RefreshRecentItems();
     }
@@ -79,6 +82,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<MarkdownOutlineItem> DocumentOutline { get; }
 
     public ObservableCollection<WorkspaceSearchResult> WorkspaceSearchResults { get; }
+
+    public ObservableCollection<WorkspaceHealthIssueViewModel> WorkspaceHealthIssues { get; }
 
     public ObservableCollection<RecentItem> RecentItems { get; }
 
@@ -107,6 +112,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private WorkspaceSearchResult? selectedWorkspaceSearchResult;
 
     [ObservableProperty]
+    private WorkspaceHealthIssueViewModel? selectedWorkspaceHealthIssue;
+
+    [ObservableProperty]
+    private string workspaceHealthSummary = "Docs health not analyzed";
+
+    [ObservableProperty]
     private MarkdownOutlineItem? selectedOutlineItem;
 
     [ObservableProperty]
@@ -129,6 +140,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public bool MiddleSplitterVisible => IsEditorVisible && IsPreviewVisible;
 
     public bool IsWorkspaceSearchActive => !string.IsNullOrWhiteSpace(WorkspaceSearchText);
+
+    public bool HasWorkspaceHealthIssues => WorkspaceHealthIssues.Count > 0;
 
     public event EventHandler<string>? OpenFolderRequested;
 
@@ -172,6 +185,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         OpenDocument(value.FullPath);
         SelectedWorkspaceSearchResult = null;
+    }
+
+    partial void OnSelectedWorkspaceHealthIssueChanged(WorkspaceHealthIssueViewModel? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        OpenWorkspaceHealthIssue(value);
+        SelectedWorkspaceHealthIssue = null;
     }
 
     partial void OnSelectedOutlineItemChanged(MarkdownOutlineItem? value)
@@ -220,6 +244,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         WorkspaceLabel = WorkspaceRootPath;
         RefreshWorkspaceTree();
         RefreshWorkspaceSearch();
+        RefreshWorkspaceHealth();
         AddRecentItem(WorkspaceRootPath);
         StatusText = $"Opened folder {WorkspaceRootPath}";
     }
@@ -365,6 +390,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void RefreshWorkspaceHealth()
+    {
+        WorkspaceHealthIssues.Clear();
+
+        if (string.IsNullOrWhiteSpace(WorkspaceRootPath) || !Directory.Exists(WorkspaceRootPath))
+        {
+            WorkspaceHealthSummary = "Docs health not analyzed";
+            StatusText = "Open a folder before analyzing docs health.";
+            OnPropertyChanged(nameof(HasWorkspaceHealthIssues));
+            return;
+        }
+
+        var report = workspaceHealthAnalyzer.Analyze(WorkspaceRootPath);
+        foreach (var issue in report.Issues)
+        {
+            WorkspaceHealthIssues.Add(new WorkspaceHealthIssueViewModel(issue, WorkspaceRootPath));
+        }
+
+        WorkspaceHealthSummary = FormatWorkspaceHealthSummary(report);
+        StatusText = WorkspaceHealthSummary;
+        OnPropertyChanged(nameof(HasWorkspaceHealthIssues));
+    }
+
     public void ExportActiveDocumentToWord(string outputPath)
     {
         if (!TryGetActiveExport(out var document, out var options))
@@ -445,6 +494,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         OpenDocument(result.FullPath);
+    }
+
+    [RelayCommand]
+    private void OpenWorkspaceHealthIssue(WorkspaceHealthIssueViewModel? issue)
+    {
+        if (issue is null)
+        {
+            return;
+        }
+
+        if (!File.Exists(issue.DocumentPath))
+        {
+            StatusText = $"Health issue document not found: {issue.RelativePath}";
+            return;
+        }
+
+        OpenDocument(issue.DocumentPath);
     }
 
     [RelayCommand]
@@ -714,6 +780,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ?.InformationalVersion
             ?? "0.1.0.3";
     }
+
+    private static string FormatWorkspaceHealthSummary(WorkspaceHealthReport report)
+    {
+        if (report.Issues.Count == 0)
+        {
+            return "Docs health clean";
+        }
+
+        return $"Docs health: {report.ErrorCount} {Pluralize(report.ErrorCount, "error")}, "
+            + $"{report.WarningCount} {Pluralize(report.WarningCount, "warning")}, "
+            + $"{report.InfoCount} {Pluralize(report.InfoCount, "note")}";
+    }
+
+    private static string Pluralize(int count, string noun) => count == 1 ? noun : noun + "s";
 
     private static string GetUniquePath(string folderPath, string baseName, string extension)
     {

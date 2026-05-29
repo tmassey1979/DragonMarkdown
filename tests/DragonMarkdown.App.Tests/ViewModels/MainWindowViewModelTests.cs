@@ -1,5 +1,6 @@
 using DragonMarkdown.App.ViewModels;
 using DragonMarkdown.App.Services;
+using DragonMarkdown.Core.Health;
 using DragonMarkdown.Core.Workspaces;
 
 namespace DragonMarkdown.App.Tests.ViewModels;
@@ -194,6 +195,47 @@ public sealed class MainWindowViewModelTests : IDisposable
         viewModel.OpenWorkspaceSearchResultCommand.Execute(result);
 
         Assert.Equal("search.md", viewModel.SelectedDocument?.DisplayName);
+    }
+
+    [Fact]
+    public void RefreshWorkspaceHealthCommand_RequiresOpenWorkspace()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.RefreshWorkspaceHealthCommand.Execute(null);
+
+        Assert.Equal("Open a folder before analyzing docs health.", viewModel.StatusText);
+        Assert.Equal("Docs health not analyzed", viewModel.WorkspaceHealthSummary);
+        Assert.Empty(viewModel.WorkspaceHealthIssues);
+    }
+
+    [Fact]
+    public void OpenFolder_AnalyzesWorkspaceHealth()
+    {
+        File.WriteAllText(Path.Combine(temporaryDirectory, "README.md"), "# Home" + Environment.NewLine + "[Missing](missing.md)");
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.OpenFolder(temporaryDirectory);
+
+        var issue = Assert.Single(viewModel.WorkspaceHealthIssues);
+        Assert.Equal(WorkspaceHealthIssueCodes.BrokenLink, issue.Code);
+        Assert.Equal("README.md", issue.RelativePath);
+        Assert.Equal("Docs health: 1 error, 0 warnings, 0 notes", viewModel.WorkspaceHealthSummary);
+    }
+
+    [Fact]
+    public void OpenWorkspaceHealthIssueCommand_OpensIssueDocument()
+    {
+        var readmePath = Path.Combine(temporaryDirectory, "README.md");
+        File.WriteAllText(readmePath, "# Home" + Environment.NewLine + "![Missing](missing.png)");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFolder(temporaryDirectory);
+        var issue = Assert.Single(viewModel.WorkspaceHealthIssues);
+
+        viewModel.OpenWorkspaceHealthIssueCommand.Execute(issue);
+
+        Assert.Equal("README.md", viewModel.SelectedDocument?.DisplayName);
+        Assert.Equal("Opened README.md", viewModel.StatusText);
     }
 
     [Fact]

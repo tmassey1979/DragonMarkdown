@@ -43,6 +43,8 @@
                 <MenuItem Header="New _File" Command="{Binding CreateFileCommand}" />
                 <MenuItem Header="New F_older" Command="{Binding CreateFolderCommand}" />
                 <Separator />
+                <MenuItem Header="Analyze Docs _Health" Command="{Binding RefreshWorkspaceHealthCommand}" />
+                <Separator />
                 <MenuItem Header="_Delete Selected" Command="{Binding DeleteSelectedCommand}" />
                 <MenuItem Header="_Reveal Selected" Command="{Binding RevealSelectedCommand}" />
             </MenuItem>
@@ -77,6 +79,7 @@
                 <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveActiveCommand}" />
                 <Button Classes="toolbar-button" Content="Word" Command="{Binding ExportWordCommand}" />
                 <Button Classes="toolbar-button" Content="PDF" Command="{Binding ExportPdfCommand}" />
+                <Button Classes="toolbar-button" Content="Health" Command="{Binding RefreshWorkspaceHealthCommand}" />
                 <Button Classes="toolbar-button" Content="Settings" Command="{Binding OpenSettingsCommand}" />
             </StackPanel>
         </Border>
@@ -92,13 +95,19 @@
             <Border Classes="panel" CornerRadius="7,0,0,7">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,8">
-                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
                             <TextBlock Classes="panel-title" Text="WORKSPACE" VerticalAlignment="Center" />
                             <Button Grid.Column="1" Padding="5,2" Content="+" Command="{Binding CreateFileCommand}" />
                             <TextBox Grid.Row="1"
                                      Grid.ColumnSpan="2"
                                      Watermark="Search files"
                                      Text="{Binding WorkspaceSearchText, Mode=TwoWay}" />
+                            <TextBlock Grid.Row="2"
+                                       Grid.ColumnSpan="2"
+                                       Text="{Binding WorkspaceHealthSummary}"
+                                       FontSize="11"
+                                       Foreground="#506070"
+                                       TextTrimming="CharacterEllipsis" />
                         </Grid>
                     </Border>
                     <ListBox ItemsSource="{Binding WorkspaceSearchResults}"
@@ -121,6 +130,34 @@
                                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#253041" />
                                         <TextBlock Text="{Binding RelativePath}" FontSize="11" Foreground="#506070" TextTrimming="CharacterEllipsis" />
                                         <TextBlock Text="{Binding Preview}" FontSize="11" Foreground="#617184" TextWrapping="Wrap" MaxLines="2" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <ListBox ItemsSource="{Binding WorkspaceHealthIssues}"
+                             SelectedItem="{Binding SelectedWorkspaceHealthIssue, Mode=TwoWay}"
+                             IsVisible="{Binding HasWorkspaceHealthIssues}"
+                             MaxHeight="230"
+                             Margin="6,6,6,0"
+                             Background="#FFFFFF"
+                             BorderBrush="#D8E0EA"
+                             BorderThickness="1">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.OpenWorkspaceHealthIssueCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="6"
+                                        HorizontalContentAlignment="Stretch">
+                                    <StackPanel Spacing="2">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="{Binding Severity}" FontSize="10" FontWeight="SemiBold" Foreground="#9A3412" />
+                                            <TextBlock Text="{Binding Code}" FontSize="10" Foreground="#506070" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Message}" FontSize="11" Foreground="#253041" TextWrapping="Wrap" MaxLines="2" />
+                                        <TextBlock Text="{Binding RelativePath}" FontSize="10" Foreground="#617184" TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
                                 </Button>
                             </DataTemplate>
