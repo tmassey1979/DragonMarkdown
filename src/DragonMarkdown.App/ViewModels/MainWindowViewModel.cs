@@ -37,6 +37,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownOutlineBuilder outlineBuilder = new();
     private readonly WorkspaceSearchService workspaceSearchService = new();
     private readonly WorkspaceHealthAnalyzer workspaceHealthAnalyzer = new();
+    private readonly ExportValidationService exportValidationService = new();
     private readonly IExportedDocumentOpener? exportedDocumentOpener;
     private readonly IUserSettingsService? userSettingsService;
     private readonly IUpdateCheckService? updateCheckService;
@@ -71,6 +72,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DocumentOutline = [];
         WorkspaceSearchResults = [];
         WorkspaceHealthIssues = [];
+        ExportValidationIssues = [];
         RecentItems = [];
         RefreshRecentItems();
     }
@@ -84,6 +86,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<WorkspaceSearchResult> WorkspaceSearchResults { get; }
 
     public ObservableCollection<WorkspaceHealthIssueViewModel> WorkspaceHealthIssues { get; }
+
+    public ObservableCollection<ExportValidationIssueViewModel> ExportValidationIssues { get; }
 
     public ObservableCollection<RecentItem> RecentItems { get; }
 
@@ -118,6 +122,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string workspaceHealthSummary = "Docs health not analyzed";
 
     [ObservableProperty]
+    private string exportValidationSummary = "Export readiness not checked";
+
+    [ObservableProperty]
     private MarkdownOutlineItem? selectedOutlineItem;
 
     [ObservableProperty]
@@ -142,6 +149,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public bool IsWorkspaceSearchActive => !string.IsNullOrWhiteSpace(WorkspaceSearchText);
 
     public bool HasWorkspaceHealthIssues => WorkspaceHealthIssues.Count > 0;
+
+    public bool HasExportValidationIssues => ExportValidationIssues.Count > 0;
 
     public event EventHandler<string>? OpenFolderRequested;
 
@@ -339,6 +348,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ?? Path.GetDirectoryName(documentPath)
             ?? Environment.CurrentDirectory;
         AutosaveDocument(SelectedDocument);
+        ClearExportValidation();
 
         previewRefreshScheduler.Schedule(
             cancellationToken =>
@@ -416,24 +426,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public void ExportActiveDocumentToWord(string outputPath)
     {
-        if (!TryGetActiveExport(out var document, out var options))
+        if (!TryExportActiveDocument(outputPath, ExportFormat.Word, out _))
         {
             return;
         }
 
-        exporter.ExportToWord(document.Text, options, outputPath);
         StatusText = $"Exported Word document {Path.GetFileName(outputPath)}";
         OpenExportedDocument(outputPath);
     }
 
     public void ExportActiveDocumentToPdf(string outputPath)
     {
-        if (!TryGetActiveExport(out var document, out var options))
+        if (!TryExportActiveDocument(outputPath, ExportFormat.Pdf, out _))
         {
             return;
         }
 
-        exporter.ExportToPdf(document.Text, options, outputPath);
         StatusText = $"Exported PDF {Path.GetFileName(outputPath)}";
         OpenExportedDocument(outputPath);
     }
@@ -494,6 +502,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         OpenDocument(result.FullPath);
+    }
+
+    [RelayCommand]
+    private void ValidateExportReadiness()
+    {
+        if (SelectedDocument is null)
+        {
+            StatusText = "No active document to validate.";
+            ExportValidationSummary = "Export readiness not checked";
+            ExportValidationIssues.Clear();
+            OnPropertyChanged(nameof(HasExportValidationIssues));
+            return;
+        }
+
+        var request = CreateExportRequest(SelectedDocument, SelectedDocument.Document.FilePath, ExportFormat.Pdf);
+        var report = exportValidationService.Validate(request);
+        ApplyExportValidationReport(report);
+        StatusText = ExportValidationSummary;
     }
 
     [RelayCommand]
@@ -727,6 +753,47 @@ public sealed partial class MainWindowViewModel : ObservableObject
         return true;
     }
 
+    private bool TryExportActiveDocument(string outputPath, ExportFormat format, out ExportResult result)
+    {
+        result = null!;
+
+        if (!TryGetActiveExport(out var document, out var options))
+        {
+            return false;
+        }
+
+        var request = CreateExportRequest(document, outputPath, format);
+        result = exporter.Export(request, options);
+        ApplyExportValidationReport(result.ValidationReport);
+
+        if (result.Succeeded)
+        {
+            return true;
+        }
+
+        StatusText = result.ErrorMessage == "Export validation failed."
+            ? $"Export validation failed: {FormatExportValidationCounts(result.ValidationReport)}"
+            : $"Export failed: {result.ErrorMessage}";
+        return false;
+    }
+
+    private static MarkdownExportRequest CreateExportRequest(
+        OpenDocumentViewModel document,
+        string outputPath,
+        ExportFormat format)
+    {
+        var profile = format == ExportFormat.Word
+            ? ExportProfile.Word("Word")
+            : ExportProfile.Pdf("PDF");
+
+        return new MarkdownExportRequest(
+            document.Text,
+            document.Document.FilePath,
+            outputPath,
+            format,
+            profile);
+    }
+
     private MarkdownRenderOptions CreateRenderOptions(OpenDocumentViewModel document)
     {
         var workspaceRoot = WorkspaceRootPath
@@ -773,6 +840,33 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshRecentItems();
     }
 
+    private void ApplyExportValidationReport(ExportValidationReport report)
+    {
+        ExportValidationIssues.Clear();
+
+        foreach (var issue in report.Errors)
+        {
+            ExportValidationIssues.Add(new ExportValidationIssueViewModel(issue, "Error"));
+        }
+
+        foreach (var issue in report.Warnings)
+        {
+            ExportValidationIssues.Add(new ExportValidationIssueViewModel(issue, "Warning"));
+        }
+
+        ExportValidationSummary = report.Errors.Count == 0 && report.Warnings.Count == 0
+            ? "Export readiness clean"
+            : $"Export readiness: {FormatExportValidationCounts(report)}";
+        OnPropertyChanged(nameof(HasExportValidationIssues));
+    }
+
+    private void ClearExportValidation()
+    {
+        ExportValidationIssues.Clear();
+        ExportValidationSummary = "Export readiness not checked";
+        OnPropertyChanged(nameof(HasExportValidationIssues));
+    }
+
     private static string GetCurrentVersion()
     {
         return Assembly.GetExecutingAssembly()
@@ -794,6 +888,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private static string Pluralize(int count, string noun) => count == 1 ? noun : noun + "s";
+
+    private static string FormatExportValidationCounts(ExportValidationReport report) =>
+        $"{report.Errors.Count} {Pluralize(report.Errors.Count, "error")}, "
+        + $"{report.Warnings.Count} {Pluralize(report.Warnings.Count, "warning")}";
 
     private static string GetUniquePath(string folderPath, string baseName, string extension)
     {

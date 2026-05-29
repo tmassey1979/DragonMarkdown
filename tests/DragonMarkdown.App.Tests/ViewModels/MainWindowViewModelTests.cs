@@ -1,5 +1,6 @@
 using DragonMarkdown.App.ViewModels;
 using DragonMarkdown.App.Services;
+using DragonMarkdown.Core.Exporting;
 using DragonMarkdown.Core.Health;
 using DragonMarkdown.Core.Workspaces;
 
@@ -280,6 +281,38 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         Assert.Equal("release-notes.docx", wordSuggestion);
         Assert.Equal("release-notes.pdf", pdfSuggestion);
+    }
+
+    [Fact]
+    public void ValidateExportReadinessCommand_ReportsActiveDocumentIssues()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "readiness.md");
+        File.WriteAllText(filePath, "# Readiness" + Environment.NewLine + "![Missing](missing.png)");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFile(filePath);
+
+        viewModel.ValidateExportReadinessCommand.Execute(null);
+
+        var issue = Assert.Single(viewModel.ExportValidationIssues);
+        Assert.Equal(ExportValidationCodes.MissingLocalImage, issue.Code);
+        Assert.Equal("Error", issue.Severity);
+        Assert.Equal("Export readiness: 1 error, 0 warnings", viewModel.ExportValidationSummary);
+    }
+
+    [Fact]
+    public void ExportMethods_StopWhenValidationHasErrors()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "blocked-export.md");
+        var pdfPath = Path.Combine(temporaryDirectory, "blocked-export.pdf");
+        File.WriteAllText(filePath, "# Blocked" + Environment.NewLine + "![Missing](missing.png)");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFile(filePath);
+
+        viewModel.ExportActiveDocumentToPdf(pdfPath);
+
+        Assert.False(File.Exists(pdfPath));
+        Assert.Equal("Export validation failed: 1 error, 0 warnings", viewModel.StatusText);
+        Assert.Single(viewModel.ExportValidationIssues);
     }
 
     [Fact]
