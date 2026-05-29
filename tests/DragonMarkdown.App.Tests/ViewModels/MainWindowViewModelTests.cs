@@ -35,6 +35,19 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpenPath_WithFolder_LoadsGitWorkspaceSummary()
+    {
+        File.WriteAllText(Path.Combine(temporaryDirectory, "README.md"), "# DragonMarkdown");
+        var gitStatusService = new RecordingGitWorkspaceStatusService(new GitWorkspaceStatus(true, "feature/docs", 2, 1));
+        var viewModel = new MainWindowViewModel(gitWorkspaceStatusService: gitStatusService);
+
+        viewModel.OpenPath(temporaryDirectory);
+
+        Assert.Equal("Git: feature/docs | 2 changed | 1 untracked", viewModel.GitWorkspaceSummary);
+        Assert.Equal(Path.GetFullPath(temporaryDirectory), gitStatusService.RequestedWorkspaceRoot);
+    }
+
+    [Fact]
     public void OpenPath_WithMarkdownFile_LoadsContainingFolderAndDocument()
     {
         var filePath = Path.Combine(temporaryDirectory, "README.md");
@@ -838,6 +851,17 @@ public sealed class MainWindowViewModelTests : IDisposable
         public void ClearSnapshots(string documentPath)
         {
             ClearedDocumentPath = Path.GetFullPath(documentPath);
+        }
+    }
+
+    private sealed class RecordingGitWorkspaceStatusService(GitWorkspaceStatus status) : IGitWorkspaceStatusService
+    {
+        public string? RequestedWorkspaceRoot { get; private set; }
+
+        public GitWorkspaceStatus GetStatus(string workspaceRoot)
+        {
+            RequestedWorkspaceRoot = Path.GetFullPath(workspaceRoot);
+            return status;
         }
     }
 

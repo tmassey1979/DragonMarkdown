@@ -51,6 +51,7 @@
                 <MenuItem Header="New F_older" Command="{Binding CreateFolderCommand}" />
                 <Separator />
                 <MenuItem Header="Analyze Docs _Health" Command="{Binding RefreshWorkspaceHealthCommand}" />
+                <MenuItem Header="Refresh _Git Status" Command="{Binding RefreshGitWorkspaceStatusCommand}" />
                 <Separator />
                 <MenuItem Header="_Delete Selected" Command="{Binding DeleteSelectedCommand}" />
                 <MenuItem Header="_Reveal Selected" Command="{Binding RevealSelectedCommand}" />
@@ -109,7 +110,7 @@
             <Border Classes="panel" CornerRadius="7,0,0,7">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Background="#F7F9FC" BorderBrush="#D8E0EA" BorderThickness="0,0,0,1" Padding="10,8">
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
                             <TextBlock Classes="panel-title" Text="WORKSPACE" VerticalAlignment="Center" />
                             <Button Grid.Column="1" Padding="5,2" Content="+" Command="{Binding CreateFileCommand}" />
                             <TextBox Grid.Row="1"
@@ -125,6 +126,12 @@
                             <TextBlock Grid.Row="3"
                                        Grid.ColumnSpan="2"
                                        Text="{Binding WorkspaceHealthSummary}"
+                                       FontSize="11"
+                                       Foreground="#506070"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Row="4"
+                                       Grid.ColumnSpan="2"
+                                       Text="{Binding GitWorkspaceSummary}"
                                        FontSize="11"
                                        Foreground="#506070"
                                        TextTrimming="CharacterEllipsis" />

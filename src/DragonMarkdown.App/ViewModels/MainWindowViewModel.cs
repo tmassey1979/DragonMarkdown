@@ -15,7 +15,7 @@ namespace DragonMarkdown.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private const string ShellCoordinatorCommandContracts =
-        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand UpdateTableOfContentsCommand BatchExportPdfCommand InsertTableCommand InsertMermaidDiagramCommand InsertImageCommand";
+        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand UpdateTableOfContentsCommand BatchExportPdfCommand InsertTableCommand InsertMermaidDiagramCommand InsertImageCommand RefreshGitWorkspaceStatusCommand";
 
     public const string EmptyPreviewHtml = """
         <!doctype html>
@@ -49,6 +49,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IPreviewRefreshScheduler previewRefreshScheduler;
     private readonly IRecentItemsService? recentItemsService;
     private readonly IAutosaveRecoveryService? autosaveRecoveryService;
+    private readonly IGitWorkspaceStatusService gitWorkspaceStatusService;
     private readonly string currentVersion;
     private readonly Dictionary<MarkdownDocument, OpenDocumentViewModel> openDocumentMap = [];
     private readonly string? helpDocumentPath;
@@ -62,6 +63,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IPreviewRefreshScheduler? previewRefreshScheduler = null,
         IRecentItemsService? recentItemsService = null,
         IAutosaveRecoveryService? autosaveRecoveryService = null,
+        IGitWorkspaceStatusService? gitWorkspaceStatusService = null,
         string? currentVersion = null)
     {
         this.helpDocumentPath = helpDocumentPath ?? AppContentPaths.FindHelpDocumentPath();
@@ -71,6 +73,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.previewRefreshScheduler = previewRefreshScheduler ?? new DebouncedPreviewRefreshScheduler();
         this.recentItemsService = recentItemsService;
         this.autosaveRecoveryService = autosaveRecoveryService;
+        this.gitWorkspaceStatusService = gitWorkspaceStatusService ?? new GitWorkspaceStatusService();
         this.currentVersion = currentVersion ?? GetCurrentVersion();
         WorkspaceItems = [];
         OpenDocuments = [];
@@ -131,6 +134,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string workspaceStatisticsSummary = "No workspace statistics";
+
+    [ObservableProperty]
+    private string gitWorkspaceSummary = "Git: not checked";
 
     [ObservableProperty]
     private string exportValidationSummary = "Export readiness not checked";
@@ -288,6 +294,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshWorkspaceTree();
         RefreshWorkspaceSearch();
         RefreshWorkspaceStatistics();
+        RefreshGitWorkspaceStatus();
         RefreshWorkspaceHealth();
         AddRecentItem(WorkspaceRootPath);
         StatusText = $"Opened folder {WorkspaceRootPath}";
@@ -485,6 +492,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
             + $"{statistics.WordCount} {Pluralize(statistics.WordCount, "word")} | "
             + $"{statistics.HeadingCount} {Pluralize(statistics.HeadingCount, "heading")} | "
             + $"{statistics.EstimatedReadingMinutes} min read";
+    }
+
+    [RelayCommand]
+    private void RefreshGitWorkspaceStatus()
+    {
+        if (string.IsNullOrWhiteSpace(WorkspaceRootPath) || !Directory.Exists(WorkspaceRootPath))
+        {
+            GitWorkspaceSummary = "Git: no workspace";
+            return;
+        }
+
+        var status = gitWorkspaceStatusService.GetStatus(WorkspaceRootPath);
+        GitWorkspaceSummary = status.IsRepository
+            ? $"Git: {status.BranchName} | {status.ChangedFileCount} changed | {status.UntrackedFileCount} untracked"
+            : "Git: not a repository";
     }
 
     [RelayCommand]

@@ -18,6 +18,8 @@ public sealed class StaticQualityGateTests
     [InlineData("src/DragonMarkdown.App/ViewModels/WorkspaceHealthIssueViewModel.cs", "WorkspaceHealthIssueViewModel")]
     [InlineData("src/DragonMarkdown.App/ViewModels/ExportValidationIssueViewModel.cs", "ExportValidationIssueViewModel")]
     [InlineData("src/DragonMarkdown.App/ViewModels/DocumentBacklinkViewModel.cs", "DocumentBacklinkViewModel")]
+    [InlineData("src/DragonMarkdown.App/Services/IGitWorkspaceStatusService.cs", "IGitWorkspaceStatusService")]
+    [InlineData("src/DragonMarkdown.App/Services/GitWorkspaceStatus.cs", "GitWorkspaceStatus")]
     [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthIssue.cs", "WorkspaceHealthIssue")]
     [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthIssueSeverity.cs", "WorkspaceHealthIssueSeverity")]
     [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthReport.cs", "WorkspaceHealthReport")]
@@ -72,6 +74,8 @@ public sealed class StaticQualityGateTests
         Assert.Contains("ItemsSource=\"{Binding WorkspaceHealthIssues}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding WorkspaceHealthSummary}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding WorkspaceStatisticsSummary}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding GitWorkspaceSummary}\"", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("RefreshGitWorkspaceStatusCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ValidateExportReadinessCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding ExportValidationIssues}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding ExportValidationSummary}\"", windowXaml, StringComparison.Ordinal);
@@ -106,6 +110,8 @@ public sealed class StaticQualityGateTests
         Assert.Contains("WorkspaceHealthIssues", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("WorkspaceHealthSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("WorkspaceStatisticsSummary", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("GitWorkspaceSummary", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("RefreshGitWorkspaceStatusCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportValidationIssues", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportValidationSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ActiveDocumentStatisticsSummary", viewModelSource, StringComparison.Ordinal);
