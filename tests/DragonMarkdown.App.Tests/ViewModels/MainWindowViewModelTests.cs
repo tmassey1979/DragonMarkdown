@@ -543,6 +543,40 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpeningDocument_LoadsBacklinksFromWorkspace()
+    {
+        Directory.CreateDirectory(Path.Combine(temporaryDirectory, "docs"));
+        var targetPath = Path.Combine(temporaryDirectory, "docs", "guide.md");
+        File.WriteAllText(Path.Combine(temporaryDirectory, "README.md"), "# Home" + Environment.NewLine + "[Guide](docs/guide.md)");
+        File.WriteAllText(targetPath, "# Guide");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFolder(temporaryDirectory);
+
+        viewModel.OpenFile(targetPath);
+
+        var backlink = Assert.Single(viewModel.DocumentBacklinks);
+        Assert.Equal("Home", backlink.Title);
+        Assert.Equal("README.md", backlink.RelativePath);
+        Assert.Equal("1 backlink", viewModel.DocumentBacklinksSummary);
+    }
+
+    [Fact]
+    public void OpenDocumentBacklinkCommand_OpensReferringDocument()
+    {
+        Directory.CreateDirectory(Path.Combine(temporaryDirectory, "docs"));
+        var targetPath = Path.Combine(temporaryDirectory, "docs", "guide.md");
+        File.WriteAllText(Path.Combine(temporaryDirectory, "README.md"), "# Home" + Environment.NewLine + "[Guide](docs/guide.md)");
+        File.WriteAllText(targetPath, "# Guide");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFolder(temporaryDirectory);
+        viewModel.OpenFile(targetPath);
+
+        viewModel.OpenDocumentBacklinkCommand.Execute(viewModel.DocumentBacklinks.Single());
+
+        Assert.Equal("README.md", viewModel.SelectedDocument?.DisplayName);
+    }
+
+    [Fact]
     public async Task EditingDocument_UpdatesActiveDocumentStatisticsAfterPreviewRefresh()
     {
         var filePath = Path.Combine(temporaryDirectory, "stats-edit.md");

@@ -15,7 +15,7 @@ namespace DragonMarkdown.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private const string ShellCoordinatorCommandContracts =
-        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand";
+        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand";
 
     public const string EmptyPreviewHtml = """
         <!doctype html>
@@ -37,6 +37,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownOutlineBuilder outlineBuilder = new();
     private readonly MarkdownDocumentStatisticsService documentStatisticsService = new();
     private readonly WorkspaceSearchService workspaceSearchService = new();
+    private readonly WorkspaceBacklinkService workspaceBacklinkService = new();
     private readonly WorkspaceHealthAnalyzer workspaceHealthAnalyzer = new();
     private readonly ExportValidationService exportValidationService = new();
     private readonly IExportedDocumentOpener? exportedDocumentOpener;
@@ -71,6 +72,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         WorkspaceItems = [];
         OpenDocuments = [];
         DocumentOutline = [];
+        DocumentBacklinks = [];
         WorkspaceSearchResults = [];
         WorkspaceHealthIssues = [];
         ExportValidationIssues = [];
@@ -83,6 +85,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<OpenDocumentViewModel> OpenDocuments { get; }
 
     public ObservableCollection<MarkdownOutlineItem> DocumentOutline { get; }
+
+    public ObservableCollection<DocumentBacklinkViewModel> DocumentBacklinks { get; }
 
     public ObservableCollection<WorkspaceSearchResult> WorkspaceSearchResults { get; }
 
@@ -129,6 +133,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string activeDocumentStatisticsSummary = "No document";
 
     [ObservableProperty]
+    private string documentBacklinksSummary = "No backlinks";
+
+    [ObservableProperty]
     private MarkdownOutlineItem? selectedOutlineItem;
 
     [ObservableProperty]
@@ -155,6 +162,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public bool HasWorkspaceHealthIssues => WorkspaceHealthIssues.Count > 0;
 
     public bool HasExportValidationIssues => ExportValidationIssues.Count > 0;
+
+    public bool HasDocumentBacklinks => DocumentBacklinks.Count > 0;
 
     public event EventHandler<string>? OpenFolderRequested;
 
@@ -321,7 +330,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (SelectedDocument is null)
         {
             DocumentOutline.Clear();
+            DocumentBacklinks.Clear();
             ActiveDocumentStatisticsSummary = "No document";
+            DocumentBacklinksSummary = "No backlinks";
+            OnPropertyChanged(nameof(HasDocumentBacklinks));
             PreviewHtmlChanged?.Invoke(this, EmptyPreviewHtml);
             return;
         }
@@ -336,6 +348,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         RefreshDocumentOutline(SelectedDocument.Text);
         RefreshDocumentStatistics(SelectedDocument.Text);
+        RefreshDocumentBacklinks(SelectedDocument.Document.FilePath);
         PreviewHtmlChanged?.Invoke(this, result.Html);
     }
 
@@ -398,6 +411,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
             + $"{statistics.LinkCount} {Pluralize(statistics.LinkCount, "link")} | "
             + $"{statistics.ImageCount} {Pluralize(statistics.ImageCount, "image")} | "
             + $"{statistics.EstimatedReadingMinutes} min read";
+    }
+
+    private void RefreshDocumentBacklinks(string documentPath)
+    {
+        DocumentBacklinks.Clear();
+
+        if (string.IsNullOrWhiteSpace(WorkspaceRootPath) || !Directory.Exists(WorkspaceRootPath))
+        {
+            DocumentBacklinksSummary = "No backlinks";
+            OnPropertyChanged(nameof(HasDocumentBacklinks));
+            return;
+        }
+
+        foreach (var backlink in workspaceBacklinkService.FindBacklinks(WorkspaceRootPath, documentPath))
+        {
+            DocumentBacklinks.Add(new DocumentBacklinkViewModel(backlink));
+        }
+
+        DocumentBacklinksSummary = $"{DocumentBacklinks.Count} {Pluralize(DocumentBacklinks.Count, "backlink")}";
+        OnPropertyChanged(nameof(HasDocumentBacklinks));
     }
 
     private void RefreshWorkspaceSearch()
@@ -519,6 +552,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         OpenDocument(result.FullPath);
+    }
+
+    [RelayCommand]
+    private void OpenDocumentBacklink(DocumentBacklinkViewModel? backlink)
+    {
+        if (backlink is null)
+        {
+            return;
+        }
+
+        OpenDocument(backlink.FullPath);
     }
 
     [RelayCommand]
