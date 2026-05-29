@@ -561,6 +561,33 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void UpdateTableOfContentsCommand_UpdatesActiveDocumentText()
+    {
+        var filePath = Path.Combine(temporaryDirectory, "toc.md");
+        File.WriteAllText(filePath, "# Guide" + Environment.NewLine + "## Setup");
+        var viewModel = new MainWindowViewModel();
+        viewModel.OpenFile(filePath);
+
+        viewModel.UpdateTableOfContentsCommand.Execute(null);
+
+        Assert.StartsWith("<!-- DragonMarkdown TOC -->", viewModel.SelectedDocument!.Text, StringComparison.Ordinal);
+        Assert.Contains("- [Guide](#guide)", viewModel.SelectedDocument.Text, StringComparison.Ordinal);
+        Assert.Contains("  - [Setup](#setup)", viewModel.SelectedDocument.Text, StringComparison.Ordinal);
+        Assert.True(viewModel.SelectedDocument.IsDirty);
+        Assert.Equal("Updated table of contents.", viewModel.StatusText);
+    }
+
+    [Fact]
+    public void UpdateTableOfContentsCommand_RequiresActiveDocument()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.UpdateTableOfContentsCommand.Execute(null);
+
+        Assert.Equal("No active document to update.", viewModel.StatusText);
+    }
+
+    [Fact]
     public void OpenDocumentBacklinkCommand_OpensReferringDocument()
     {
         Directory.CreateDirectory(Path.Combine(temporaryDirectory, "docs"));

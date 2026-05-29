@@ -15,7 +15,7 @@ namespace DragonMarkdown.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private const string ShellCoordinatorCommandContracts =
-        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand";
+        "OpenSettingsCommand CheckForUpdatesCommand ExportWordCommand ExportPdfCommand OpenDocumentBacklinkCommand UpdateTableOfContentsCommand";
 
     public const string EmptyPreviewHtml = """
         <!doctype html>
@@ -36,6 +36,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MarkdownRenderer renderer = new();
     private readonly MarkdownOutlineBuilder outlineBuilder = new();
     private readonly MarkdownDocumentStatisticsService documentStatisticsService = new();
+    private readonly MarkdownTableOfContentsService tableOfContentsService = new();
     private readonly WorkspaceSearchService workspaceSearchService = new();
     private readonly WorkspaceBacklinkService workspaceBacklinkService = new();
     private readonly WorkspaceHealthAnalyzer workspaceHealthAnalyzer = new();
@@ -563,6 +564,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         OpenDocument(backlink.FullPath);
+    }
+
+    [RelayCommand]
+    private void UpdateTableOfContents()
+    {
+        if (SelectedDocument is null)
+        {
+            StatusText = "No active document to update.";
+            return;
+        }
+
+        SelectedDocument.Text = tableOfContentsService.UpdateTableOfContents(SelectedDocument.Text);
+        StatusText = "Updated table of contents.";
     }
 
     [RelayCommand]

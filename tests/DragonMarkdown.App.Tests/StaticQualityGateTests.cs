@@ -23,6 +23,7 @@ public sealed class StaticQualityGateTests
     [InlineData("src/DragonMarkdown.Core/Health/WorkspaceHealthReport.cs", "WorkspaceHealthReport")]
     [InlineData("src/DragonMarkdown.Core/Documents/MarkdownDocumentStatistics.cs", "MarkdownDocumentStatistics")]
     [InlineData("src/DragonMarkdown.Core/Documents/MarkdownDocumentStatisticsService.cs", "MarkdownDocumentStatisticsService")]
+    [InlineData("src/DragonMarkdown.Core/Documents/MarkdownTableOfContentsService.cs", "MarkdownTableOfContentsService")]
     [InlineData("src/DragonMarkdown.Core/Workspaces/WorkspaceBacklink.cs", "WorkspaceBacklink")]
     [InlineData("src/DragonMarkdown.Core/Workspaces/WorkspaceBacklinkService.cs", "WorkspaceBacklinkService")]
     [InlineData("src/DragonMarkdown.Core/Rendering/BlockedMarkdownReference.cs", "BlockedMarkdownReference")]
@@ -74,6 +75,7 @@ public sealed class StaticQualityGateTests
         Assert.Contains("Text=\"{Binding ActiveDocumentStatisticsSummary}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding DocumentBacklinks}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("OpenDocumentBacklinkCommand", windowXaml, StringComparison.Ordinal);
+        Assert.Contains("UpdateTableOfContentsCommand", windowXaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
         Assert.Contains("SelectedItem=\"{Binding SelectedOutlineItem, Mode=TwoWay}\"", windowXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("ItemsControl Grid.Column=\"1\" ItemsSource=\"{Binding DocumentOutline}\"", windowXaml, StringComparison.Ordinal);
@@ -99,6 +101,7 @@ public sealed class StaticQualityGateTests
         Assert.Contains("ActiveDocumentStatisticsSummary", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("DocumentBacklinks", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("OpenDocumentBacklinkCommand", viewModelSource, StringComparison.Ordinal);
+        Assert.Contains("UpdateTableOfContentsCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("DocumentOutline", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportWordCommand", viewModelSource, StringComparison.Ordinal);
         Assert.Contains("ExportPdfCommand", viewModelSource, StringComparison.Ordinal);

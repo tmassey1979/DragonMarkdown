@@ -36,6 +36,8 @@
                 <MenuItem Header="_Save" Command="{Binding SaveActiveCommand}" />
                 <MenuItem Header="Save _All" Command="{Binding SaveAllCommand}" />
                 <Separator />
+                <MenuItem Header="Update Table of _Contents" Command="{Binding UpdateTableOfContentsCommand}" />
+                <Separator />
                 <MenuItem Header="_Validate Export Readiness" Command="{Binding ValidateExportReadinessCommand}" />
                 <MenuItem Header="Export to _Word..." Command="{Binding ExportWordCommand}" />
                 <MenuItem Header="Export to _PDF..." Command="{Binding ExportPdfCommand}" />
@@ -78,6 +80,7 @@
             <StackPanel Name="MainToolbar" Orientation="Horizontal" Spacing="8">
                 <Button Classes="toolbar-button" Content="Open Folder" Command="{Binding OpenFolderCommand}" />
                 <Button Classes="toolbar-button" Content="Save" Command="{Binding SaveActiveCommand}" />
+                <Button Classes="toolbar-button" Content="TOC" Command="{Binding UpdateTableOfContentsCommand}" />
                 <Button Classes="toolbar-button" Content="Validate Export" Command="{Binding ValidateExportReadinessCommand}" />
                 <Button Classes="toolbar-button" Content="Word" Command="{Binding ExportWordCommand}" />
                 <Button Classes="toolbar-button" Content="PDF" Command="{Binding ExportPdfCommand}" />
